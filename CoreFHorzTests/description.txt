@@ -5,4 +5,6 @@ It tests that with/without GI (grid interpolation layer) you get same model stat
 It tests that lowmemory=1,2 (where appropriate) still give same answer (as lowmemory=0, which is default)
 There are also a bunch of 'cross-tests' that aim to test that if you 'disguise an iid as a markov' then you get the same answer as just using an iid. (and analagously 'disgusing a markov as semiz').
 
+The tests are largely based on running lots of different things that I know should give the same answer. And then just checking that they do.
+
 All the tests are passed.
