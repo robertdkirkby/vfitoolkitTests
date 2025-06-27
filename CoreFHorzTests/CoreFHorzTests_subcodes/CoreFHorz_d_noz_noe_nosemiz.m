@@ -107,6 +107,7 @@ legend('1','2','3','4')
 subplot(2,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
 title('Assets Std Dev')
 legend('1','2','3','4')
+% ylim([0,0.01]) % If you want to make graph look nicer
 
 %%
 output=struct(); % Not currently used for anything. Maybe will do so later.

@@ -21,10 +21,18 @@ figure_c=1;
 output=CoreFHorz_nod_noz_noe_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 % looks good
 
+% Figure can appear to have an issue with std dev of assets, but if you look at the y-axis it is
+% all just 1e-3, so irrelevant. Is because interpolation creates tiny amount of variance where the is none.
+% (Explanation: http://discourse.vfitoolkit.com/t/grid-interpolation-layer/394/12 )
+
 %% with d, without z, without e, without semiz
 figure_c=2;
 output=CoreFHorz_d_noz_noe_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 % looks good
+
+% Figure can appear to have an issue with std dev of assets, but if you look at the y-axis it is
+% all just 1e-3, so irrelevant.  Is because interpolation creates tiny amount of variance where the is none.
+% (Explanation: http://discourse.vfitoolkit.com/t/grid-interpolation-layer/394/12 )
 
 %% without d, with z, without e, without semiz
 figure_c=3;
@@ -146,9 +154,7 @@ output=CoreFHorz_CrossTests2_d1_semiz(n_d_semiz,n_a,n_a_big,n_z,N_j,d_grid_semiz
 
 
 
-%% THINGS LEFT TO DO
-% For models without a decision variable (or without d1 for semiz)
-% Need to update the 'loweredge' only step in the divide-and-conquer codes (including those with GI)
-%
+%% THINGS NOT CHECKED
 % Check using two decision variables in the semiz codes (both for d1 and for d2, and without d1)
+
 
