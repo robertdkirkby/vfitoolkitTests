@@ -12,6 +12,7 @@
 addpath('./CoreFHorzTests_subcodes/')
 addpath('./CoreFHorzTests_Setup/')
 addpath('./CoreFHorz_ReturnFns/')
+addpath('./CoreFHorzTests_subcodes/CrossTests/')
 
 %% Setup so that use the same d,a,z,e,semiz in all the models that use them
 CoreFHorz_setup
@@ -72,7 +73,8 @@ output=CoreFHorz_CrossTests_d_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_gr
 % all looking good :)
 
 
-
+%% Worth doing a 'clear all' here, but not necessary.
+% Mainly is so you can run second half independent of first half
 
 %% That is all the without semiz, now with semiz
 % From here on, it is the eight with semiz
@@ -83,6 +85,7 @@ output=CoreFHorz_CrossTests_d_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_gr
 addpath('./CoreFHorzTests_subcodes/')
 addpath('./CoreFHorzTests_Setup/')
 addpath('./CoreFHorz_ReturnFns/')
+addpath('./CoreFHorzTests_subcodes/CrossTests/')
 
 addpath('./CoreFHorzTests_subcodes/Semiz_subcodes/')
 addpath('./CoreFHorz_ReturnFns/Semiz_ReturnFns/')
