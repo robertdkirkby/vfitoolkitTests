@@ -57,7 +57,7 @@ ReturnFn_ze=@(d,aprime,a,z,e,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension)...
 % FnsToEvaluate_e.earnings=@(aprime,a,e,w,kappa_j) w*kappa_j*e;
 
 %% Solving for model with one markov
-jequaloneDist1=zeros(n_a,n_semiz,'gpuArray');
+jequaloneDist1=zeros([n_a,n_semiz],'gpuArray');
 jequaloneDist1(1,ceil(n_semiz/2))=1; % no assets
 
 % First, just use z (without semiz)
@@ -90,7 +90,7 @@ fprintf('Cross test: semiz as z, this should be zero: %2.8f \n',max(abs(Stationa
 % squeeze(abs(sum(StationaryDist1A,1)-sum(StationaryDist1B,1))) % Directly check shocks without Policy.
 
 %% Solving for model with one markov and one e
-jequaloneDist1=zeros(n_a,n_semiz,vfoptions.n_e,'gpuArray');
+jequaloneDist1=zeros([n_a,n_semiz,vfoptions.n_e],'gpuArray');
 jequaloneDist1(1,ceil(n_semiz/2),ceil(vfoptions.n_e/2))=1; % no assets
 
 % First, just use z and e (without semiz)

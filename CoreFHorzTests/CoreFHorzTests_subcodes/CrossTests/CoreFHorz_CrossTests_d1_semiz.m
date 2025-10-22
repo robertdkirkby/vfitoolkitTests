@@ -9,6 +9,8 @@ z_grid=vfoptionsbaseline.e_grid;
 % n_d=n_d_semiz;
 % d_grid=d_grid_semiz;
 
+vfoptions.divideandconquer=1;
+
 % Setup semiz
 vfoptions.n_semiz=vfoptionsbaseline.n_semiz;
 vfoptions.semiz_grid=vfoptionsbaseline.semiz_grid;
@@ -47,7 +49,7 @@ ReturnFn_ze=@(d1,d2,aprime,a,semiz,z,e,r,w,kappa_j,sigma,agej,Jr,pension,eta,var
 
 
 %% Solving with just a single points for z with value 1 and prob 1 gives us same as no shocks
-jequaloneDist_none=zeros(n_a,n_semiz,'gpuArray');
+jequaloneDist_none=zeros([n_a,n_semiz],'gpuArray');
 jequaloneDist_none(1,ceil(n_semiz/2))=1; % no assets
 
 % optionsA: just semiz (no e)
@@ -71,9 +73,11 @@ fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(V0(:)-V0z(:)
 fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(Policy0(:)-Policy0z(:))))
 fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(StationaryDist0(:)-StationaryDist0z(:))))
 
+clear V0 Policy0 V0z Policy0z StationaryDist0 StationaryDist0z
+
 %% Solve using a markov which is just an iid in disguise. Should give same result as the iid
 % zeros assets, mid points for any shocks
-jequaloneDist_z=zeros(n_a,n_semiz,n_z,'gpuArray');
+jequaloneDist_z=zeros([n_a,n_semiz,n_z],'gpuArray');
 jequaloneDist_z(1,ceil(n_semiz/2),ceil(n_z/2))=1; % no assets, midpoint shock
 
 % Use vfoptionsA, which has semiz but nothing else
@@ -90,13 +94,15 @@ fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(V1(:)-V2(:))
 fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(Policy1(:)-Policy2(:))))
 fprintf('Cross test: z as e, this should be zero: %2.8f \n',max(abs(StationaryDist1(:)-StationaryDist2(:))))
 
+clear V2 Policy2 StationaryDist2
+
 %% Now use code with z and e, but just set the 'other' to be a single point with value 1 and prob 1
 % So it should again give same answer
 
 % First, make z just 1
 % Use semiz and e (vfoptionsB)
 [V3,Policy3]=ValueFnIter_Case1_FHorz(n_d,n_a,1,N_j,d_grid,a_grid,1,1,ReturnFn_ze,Params,DiscountFactorParamNames,[],vfoptionsB);
-jequaloneDist3=zeros(n_a,n_semiz,1,vfoptionsB.n_e,'gpuArray');
+jequaloneDist3=zeros([n_a,n_semiz,1,vfoptionsB.n_e],'gpuArray');
 jequaloneDist3(1,ceil(n_semiz/2),1,ceil(vfoptionsB.n_e/2))=1; % no assets, midpoint shock
 StationaryDist3=StationaryDist_FHorz_Case1(jequaloneDist3,AgeWeightParamNames,Policy3,n_d,n_a,1,N_j,1,Params,simoptionsB);
 V3=squeeze(V3);
@@ -116,7 +122,7 @@ simoptionsC=simoptionsB;
 simoptionsC.n_e=1;
 simoptionsC.e_grid=1;
 simoptionsC.pi_e=1;[V4,Policy4]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn_ze,Params,DiscountFactorParamNames,[],vfoptionsC);
-jequaloneDist4=zeros(n_a,n_semiz,n_z,1,'gpuArray');
+jequaloneDist4=zeros([n_a,n_semiz,n_z,1],'gpuArray');
 jequaloneDist4(1,ceil(n_semiz/2),ceil(n_z/2),1)=1; % no assets, midpoint shock
 StationaryDist4=StationaryDist_FHorz_Case1(jequaloneDist4,AgeWeightParamNames,Policy4,n_d,n_a,n_z,N_j,pi_z,Params,simoptionsC);
 V4=squeeze(V4);
