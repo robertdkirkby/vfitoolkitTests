@@ -37,6 +37,8 @@ vfoptions1=vfoptions;
 simoptions1=simoptions;
 [V1,Policy1]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
 
+PolicyVals1=PolicyInd2Val_Case1_FHorz(Policy1,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions1);
+
 % Solve with divide-and-conquer, should give same answer
 vfoptions2=vfoptions;
 vfoptions2.divideandconquer=1;
@@ -48,13 +50,20 @@ fprintf('Divide-and-conquer, this should be zero: %2.8f \n',max(abs(Policy1(:)-P
 
 % lowmemory
 vfoptions1.lowmemory=1;
-[V1l,Policy1l]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V1(:)-V1l(:))))
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy1(:)-Policy1l(:))))
+[V1B,Policy1B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V1(:)-V1B(:))))
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy1(:)-Policy1B(:))))
+vfoptions1.lowmemory=0;
+
 vfoptions2.lowmemory=1;
-[V2l,Policy2l]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions2);
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V2(:)-V2l(:))))
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy2(:)-Policy2l(:))))
+[V2B,Policy2B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions2);
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V2(:)-V2B(:))))
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy2(:)-Policy2B(:))))
+vfoptions2.lowmemory=0;
+
+%%
+clear V1 V2 V1B V2B Policy1 Policy2 Policy1B Policy2B PolicyVals1
+
 
 %% Solve with grid-interpolation
 vfoptions3=vfoptions;
@@ -65,7 +74,7 @@ simoptions3.gridinterplayer=vfoptions3.gridinterplayer;
 simoptions3.ngridinterp=vfoptions3.ngridinterp;
 [V3,Policy3]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
 
-% max(abs(V1(:)-V3(:)))
+PolicyVals3=PolicyInd2Val_Case1_FHorz(Policy3,n_d,n_a,n_z,N_j,d_grid,a_grid,vfoptions3);
 
 % Solve with divide-and-conquer, should give same answer
 vfoptions4=vfoptions;
@@ -77,24 +86,25 @@ simoptions4.gridinterplayer=vfoptions4.gridinterplayer;
 simoptions4.ngridinterp=vfoptions4.ngridinterp;
 [V4,Policy4]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
 
-% max(abs(V2(:)-V4(:)))
-
 fprintf('Divide-and-conquer, this should be zero: %2.8f \n',max(abs(V3(:)-V4(:))))
 fprintf('Divide-and-conquer, this should be zero: %2.8f \n',max(abs(Policy3(:)-Policy4(:))))
 
 % lowmemory
 vfoptions3.lowmemory=1;
-[V3l,Policy3l]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V3(:)-V3l(:))))
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy3(:)-Policy3l(:))))
+[V3B,Policy3B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V3(:)-V3B(:))))
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy3(:)-Policy3B(:))))
+vfoptions3.lowmemory=0;
+
 vfoptions4.lowmemory=1;
-[V4l,Policy4l]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V4(:)-V4l(:))))
-fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy4(:)-Policy4l(:))))
+[V4B,Policy4B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(V4(:)-V4B(:))))
+fprintf('lowmemory=1, this should be zero: %2.8f \n',max(abs(Policy4(:)-Policy4B(:))))
+vfoptions4.lowmemory=0;
 
 
 %%
-clear V1 V2 V3 V4 Policy1 Policy2 Policy3 Policy4
+clear V3 V4 V3B V4B Policy3 Policy4 Policy3B Policy4B PolicyVals3
 
 
 %% Use a really big a_grid, then the moments should be essentially the same with/without grid interpolation
