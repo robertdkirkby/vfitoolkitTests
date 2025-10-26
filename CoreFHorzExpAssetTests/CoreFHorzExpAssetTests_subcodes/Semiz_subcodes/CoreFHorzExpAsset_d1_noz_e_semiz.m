@@ -23,7 +23,7 @@ simoptions.pi_e=simoptionsbaseline.pi_e;
 simoptions.e_grid=simoptionsbaseline.e_grid;
 % zeros assets, mid points for any shocks
 jequaloneDist=zeros([n_a_big,vfoptions.n_semiz,vfoptions.n_e],'gpuArray'); % Note: based on n_a_big, not n_a
-jequaloneDist(1,2,ceil(vfoptions.n_e/2))=1;
+jequaloneDist(1,2,ceil(vfoptions.n_semiz/2),ceil(vfoptions.n_e/2))=1;
 
 ReturnFn=@(d1,d2,d3,a1prime,a1,a2,semiz,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension,uempbenefit,searcheffortcost) ReturnFn_d1_noz_e_semiz(d1,d2,d3,a1prime,a1,a2,semiz,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension,uempbenefit,searcheffortcost);
 

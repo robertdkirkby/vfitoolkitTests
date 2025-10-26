@@ -16,7 +16,7 @@ simoptions.semiz_grid=simoptionsbaseline.semiz_grid;
 simoptions.SemiExoStateFn=simoptionsbaseline.SemiExoStateFn;
 % zeros assets, mid points for any shocks
 jequaloneDist=zeros([n_a_big,vfoptions.n_semiz],'gpuArray'); % Note: based on n_a_big, not n_a
-jequaloneDist(1,2)=1;
+jequaloneDist(1,2,ceil(vfoptions.n_semiz/2))=1;
 
 ReturnFn=@(d1,d2,d3,a1prime,a1,a2,semiz,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension,uempbenefit,searcheffortcost) ReturnFn_d1_noz_noe_semiz(d1,d2,d3,a1prime,a1,a2,semiz,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension,uempbenefit,searcheffortcost);
 
