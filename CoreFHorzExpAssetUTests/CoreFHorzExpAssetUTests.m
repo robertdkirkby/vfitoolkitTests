@@ -33,8 +33,7 @@ output=CoreFHorzExpAssetU_d1_noz_noe_nosemiz(n_d_withd1,n_a,n_a_big,n_z,N_j,d_gr
 %% without d1, with z, without e, without semiz
 figure_c=3;
 output=CoreFHorzExpAssetU_nod1_z_noe_nosemiz(n_d_withoutd1,n_a,n_a_big,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
-
-% NEEDS WORK
+% looks good
 
 %% with d1, with z, without e, without semiz
 n_a_notsobig=[301,13]; % To avoid out-of-memory errors
@@ -43,8 +42,7 @@ a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=4;
 output=CoreFHorzExpAssetU_d1_z_noe_nosemiz(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
-
-% NEEDS WORK
+% looks good
 
 %% without d1, without z, with e, without semiz
 figure_c=5;
@@ -67,8 +65,7 @@ a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=7;
 output=CoreFHorzExpAssetU_nod1_z_e_nosemiz(n_d_withoutd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
-
-% NEEDS WORK
+% looks good
 
 %% with d1, with z, with e, without semiz
 n_a_notsobig=[201,13]; % To avoid out-of-memory errors
@@ -77,8 +74,7 @@ a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=8;
 output=CoreFHorzExpAssetU_d1_z_e_nosemiz(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
-
-% NEEDS WORK
+% looks good
 
 %% Now some cross-tests, things like setting up a markov that is actually just an iid, make sure we get same result as just doing iid
 output=CoreFHorzExpAssetU_CrossTests_nod1_nosemiz(n_d_withoutd1,n_a,n_a_big,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
@@ -92,6 +88,7 @@ output=CoreFHorzExpAssetU_CrossTests3_nod1_nosemiz(n_d_withoutd1,n_a,n_a_big,n_z
 output=CoreFHorzExpAssetU_CrossTests3_d1_nosemiz(n_d_withd1,n_a,n_a_big,n_z,N_j,d_grid_withd1,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
 % all looking good :)
 
+%% Should I add a test where an experienceassetu is just an experienceasset (n_u=1, u_grid=1, pi_u=1) and see they give same result?
 
 %%
 % SEMIEXO WITH EXPASSETU HAS NOT YET BEEN IMPLEMENTED
