@@ -184,7 +184,7 @@ output=CoreFHorzExpAssetU_CrossTests3_d1_nosemiz(n_d_withd1,n_a,n_a_big,n_z,N_j,
 
 %% THINGS NOT CHECKED
 % Check using two decision variables in any of d1 or d3 (the decision variables that are not in experience asset)
-% Stuff for when the experienceasset is the only asset
+% Stuff for when the experienceassetu is the only asset
 
 
 
