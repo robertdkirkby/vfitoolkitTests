@@ -48,9 +48,6 @@ simoptionsbaseline.semiz_grid=vfoptionsbaseline.semiz_grid;
 simoptionsbaseline.SemiExoStateFn=vfoptionsbaseline.SemiExoStateFn;
 simoptionsbaseline.n_semiz=vfoptionsbaseline.n_semiz;
 
-% for simulations, use enough to get decent accuracy
-simoptionsbaseline.numbersims=1e4;
-
 %% Now some parameters that models use
 
 Params.beta=0.95; % discount factor
