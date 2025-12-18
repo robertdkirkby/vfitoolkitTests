@@ -102,7 +102,7 @@ fprintf('With/without grid interp, should get much the same moments (for big a_g
 [AgeConditionalStats2.earnings.Mean; AgeConditionalStats4.earnings.Mean]
 [AgeConditionalStats2.assets.StdDeviation; AgeConditionalStats4.assets.StdDeviation]
 
-clear V2b V4b Policy2b Policy4b StationaryDist2 StationaryDist4
+clear V2b V4b StationaryDist2 StationaryDist4 % Policy2b Policy4b 
 
 %% Do some graphs of the age-conditional to see them
 fig=figure(figure_c);
@@ -113,6 +113,20 @@ subplot(2,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,A
 title('Assets Std Dev')
 legend('1','2','3','4')
 % ylim([0,0.01]) % If you want to make graph look nicer
+
+
+%% Sim panel and check it gives the same age conditional stats
+% With and without grid interpolation layer
+SimPanelValues2=SimPanelValues_FHorz_Case1(jequaloneDist,Policy2b,FnsToEvaluate,Params,[],n_d,n_a_big,n_z,N_j,d_grid,a_grid_big,z_grid,pi_z, simoptions2);
+SimPanelValues4=SimPanelValues_FHorz_Case1(jequaloneDist,Policy4b,FnsToEvaluate,Params,[],n_d,n_a_big,n_z,N_j,d_grid,a_grid_big,z_grid,pi_z, simoptions4);
+
+% Do two comparisons to age conditional stats
+fprintf('Without grid interp, sim panel data should give roughly the same age conditional stats \n')
+[AgeConditionalStats2.earnings.Mean; mean(SimPanelValues2.earnings,2)']
+[AgeConditionalStats2.assets.Mean; mean(SimPanelValues2.assets,2)']
+fprintf('With grid interp, sim panel data should give roughly the same age conditional stats \n')
+[AgeConditionalStats4.earnings.Mean; mean(SimPanelValues4.earnings,2)']
+[AgeConditionalStats4.assets.Mean; mean(SimPanelValues4.assets,2)']
 
 %%
 output=struct(); % Not currently used for anything. Maybe will do so later.
