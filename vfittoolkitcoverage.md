@@ -15,7 +15,7 @@ Last updated: 2026-09-02
 | bank | noa1 | withA1 | with2A | var | x-tests | panel vs dist | V_Jplus1 | core raws | QH | EZ | AA |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | CoreFHorzTests | — | 16+6x | 16+4x | 32 | 10 | 32/32 | 32 + 32 QH + 16 EZ | 142 | 42 | 24 | 16 |
-| ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 0 | 128 | 48 | — | — |
+| ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 | 128 | 48 | — | — |
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 0 | 128 | 48 | — | — |
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 0 | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 0 | 64 | 24 | — | — |
@@ -23,7 +23,7 @@ Last updated: 2026-09-02
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **160** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **208** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -390,6 +390,68 @@ both diaries is dyadic (`2^-33` … `2^-28`), which is what representation-level
 like and is not what a real numerical fault looks like. That covers the relocated 2A too: it
 contributed 234 checks in ze with every method and β₀ comparison bitwise zero.
 
+### V_Jplus1 project, bank 1: CoreFHorzExpAssetTests (2026-09-02)
+
+First bank of the twelve-bank effort to put runtime coverage behind the `V_Jplus1` branches of the
+experience-asset families. All 48 subcodes gained a `V_Jplus1` section (`d246b10`, `164c0a3`),
+**700 checks across 42 completed variants, all exactly zero** after one real bug was fixed.
+
+There was no toolkit gate to open: the dispatchers pass `vfoptions` straight through and the raws
+read `vfoptions.V_Jplus1` directly, so every branch was already reachable. This is a test-writing
+project; the toolkit work is only whatever the tests break.
+
+**The donor is `CoreFHorzTests_subcodes`**, which already had a complete 32-subcode precedent over
+the identical d×z×e×semiz structure at 1-asset and 2-asset tiers. Generated blocks were validated
+by exact reproduction — 10/10 variants matched the donor's code lines byte-for-byte — so only the
+3-asset `with2A1` tier had no precedent, and it differs by one colon. Three rules parameterise the
+block, with `a` = asset dims and `s` = shock dims:
+
+- V slice takes `a+s` colons, Policy `a+s+1`
+- the lowmemory ladder runs `1..s`, and there is no ladder at all when `s=0`
+- the age-dependent-shocks block appears iff z or e; semiz adds nothing to it
+
+`pi_z_J` trims to `1:Njs` but `pi_e_J` trims to `1:jstar` — a pi_e column is the distribution of e
+*realised* in period j, so the shorter model needs the column for the V_Jplus1 period too.
+
+**The noa1 tier takes a different shape.** With no standard asset a1 there is nothing for DC or the
+grid interp layer to operate on, so those 16 subcodes define only `vfoptions1`; giving them the
+four-method block killed the first run at `Unrecognized function or variable 'vfoptions2'`. They now
+use the `CoreFHorzRiskyAsset_*_noa1.m` shape — one method looped over `jstar=[round(3*N_j/4),N_j]`.
+Generalises: **check that every `vfoptionsN` a generated block references is defined in the target
+file**, not merely that the block's own shape is right.
+
+#### The bug it caught
+
+Twelve ExperienceAsset raws built `aprimeProbs` in their `V_Jplus1` branch as
+`repmat(a2primeProbs,N_a1,1,1,N_z)` where their own in-loop code uses `repmat(...,N_a1,1,N_z)`.
+In this family `a2primeProbs` is 2-D `[N_d2,N_a2]`, so the extra factor inserts an interior
+singleton — `[D,A2,1,Z]` instead of `[D,A2,Z]` — which **broadcasts** against `Vlower [D,A2,Z]` to
+give `[D,A2,Z,Z]`. The later `sum(...,3)` restores the correct shape, so it never errored; it
+returned wrong values wherever `skipinterp` was non-empty, since that zeroing is what makes the
+probabilities z-dependent. The line's own comment still documented the correct shape.
+
+It surfaced as 6 of 642 checks non-zero — `8.631e-04`, `1.302e-03`, and a Policy difference of
+exactly `1.000e+00` — in `d1_z_noe_nosemiz` and its `with2A1` sibling, both at the base method,
+`jstar=15`. Every other non-zero in that diary was at the ULP floor. Fixed in `070afc87`.
+
+**Method note, because the naive check gives a flood of false positives.** The 4-factor form is
+*correct* in the z-bearing families, where `a2primeProbs` is 3-D, and 252 sites use it
+legitimately. The valid test is per-file: **diff each file's `V_Jplus1` branch against its own
+in-loop line**, since the in-loop code is exercised by every existing test. That sweep over 1082
+raws returned exactly 12 — the `d1+z+noe` leaves of {base, DC1, GI1, DC1_GI1} × {exponential, QH-N,
+QH-S}. This is the opposite of the "fewer `repelem` factors is legal" rule recorded elsewhere:
+*fewer* is harmless because trailing singletons drop, *more* is not.
+
+8 of the 12 are QH raws whose bank has no `V_Jplus1` tests yet, so those fixes ride on this
+evidence rather than their own — which makes QH ExpAsset the natural bank 2.
+
+**Two caveats on this bank's reach.** The run OOMs at config 40 (`d1_z_e_nosemiz_with2A1`), a
+pre-existing ceiling; because the call is not commented out, the OOM *aborts the script*, so
+configs 41–48 only run when the post-40 part is invoked separately. And one non-zero remains in the
+diary — `Divide-and-conquer (DC2A)` Policy `1.000e+00` with V agreeing to `1.863e-09` — which is an
+argmax tie, not a defect. The contrast is the argument: the real bug showed `1.302e-03` alongside
+the same Policy difference, four orders of magnitude away.
+
 ### AmbiguityAversion closed (2026-09-01)
 
 `CoreFHorzAmbiguityTests` was written test-first on 2026-08-28 (9 files: 6 variants + 2
@@ -492,18 +554,20 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. Still zero coverage across the
-  whole ExpAsset family (re-verified 2026-08-31: the ExpAsset and ExpAssetU banks mention
-  `V_Jplus1` in 0 subcodes; the ExpAssetz and ExpAssetze banks likewise, re-checked 2026-09-01).
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: bank 1 of the
+  V_Jplus1 project landed on 2026-09-02** (see the section below), giving `CoreFHorzExpAssetTests`
+  V_Jplus1 blocks in all 48 subcodes. The other eleven banks in that family — ExpAssetU, e, z, ze,
+  semiz and all six QH mirrors — are still at zero (re-checked 2026-09-02).
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
   were internally inconsistent (some were core-only, some were not) and the total was low. A
   direct `grep -l V_Jplus1` over every `*_raw.m` in the six families returns **1440 of 1440** —
-  i.e. *every* raw carries one, with zero test coverage: ExperienceAsset 384, ExperienceAssetu
+  i.e. *every* raw carries one: ExperienceAsset 384, ExperienceAssetu
   384, ExperienceAssete 192, ExperienceAssetz 192, ExperienceAssetze 96, ExperienceAssetsemiz
   192. Those branches are age-shifted copies of the in-loop code — the shape that produced the
-  `jj`/`N_j` bug. Largest remaining gap on any axis, by more than double what this doc claimed.
+  `jj`/`N_j` bug. Still the largest gap on any axis, by more than double what this doc claimed,
+  though bank 1 has now put runtime coverage behind part of ExperienceAsset's 384.
 
   The QH ExperienceAssetu port put a number on the cost. Eleven real defects were found in
   shipped exponential code by diffing each `V_Jplus1` branch against the in-loop code of the same
