@@ -15,7 +15,7 @@ Last updated: 2026-09-02
 | bank | noa1 | withA1 | with2A | var | x-tests | panel vs dist | V_Jplus1 | core raws | QH | EZ | AA |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | CoreFHorzTests | — | 16+6x | 16+4x | 32 | 10 | 32/32 | 32 + 32 QH + 16 EZ | 142 | 42 | 24 | 16 |
-| ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 | 128 | 48 | — | — |
+| ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 0 | 128 | 48 | — | — |
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 0 | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 0 | 64 | 24 | — | — |
@@ -23,7 +23,7 @@ Last updated: 2026-09-02
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **208** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **256** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -445,7 +445,39 @@ QH-S}. This is the opposite of the "fewer `repelem` factors is legal" rule recor
 8 of the 12 are QH raws whose bank has no `V_Jplus1` tests yet, so those fixes ride on this
 evidence rather than their own — which makes QH ExpAsset the natural bank 2.
 
-**Two caveats on this bank's reach.** The run OOMs at config 40 (`d1_z_e_nosemiz_with2A1`), a
+#### Bank 2: CoreFHorzQHExpAssetTests (2026-09-02)
+
+All 48 subcodes gained a V_Jplus1 section, **+2560 checks** (bank 1933 → ~4493), committed
+`f684de0`. The donor is the **QH mirror of CoreFHorzTests**, and the generated code reproduces it
+exactly across all 12 (a,s) combinations it covers. First run: **2056 checks reached over 42 of 48
+subcodes, all exactly zero** — including the eight QH raws fixed in `070afc87`, which until then
+rested on the exponential bank's evidence alone.
+
+The quasi-hyperbolic specifics, all inherited from that donor:
+
+- **`Valt` is what gets fed back as `vfoptions.V_Jplus1`, never `V`.** The continuation value in
+  the Bellman equation is the standard-discounted one — `V_std` when Naive, `Vunderbar` when
+  Sophisticated — which is the *third* output. `V` is Vtilde/Vhat, the QH-discounted object.
+- Eight blocks per subcode: {Naive, Sophisticated} × {base, DC, GI, DC+GI}. Naive returns four
+  outputs and gets four checks at each jstar (V, Policy, Valt, **Policyalt**); Sophisticated
+  returns three. Both get three per lowmemory rung. So **28+24s** checks per subcode, or
+  **14+12s** for noa1.
+- The section sits **before** `%% Versus exponential discounting`, which sets `beta0=1` and would
+  collapse QH onto exponential, disabling exactly what these tests exercise.
+- `vfoptions1..4` are redefined in the Sophisticated section, so every block sets
+  `quasi_hyperbolic` explicitly rather than inheriting whatever they currently hold.
+
+**Deliberate gap:** the QH donor has no age-dependent-shocks block in any of its 32 subcodes, so
+bank 2 has none either. QH + age-dependent `pi_z`/`pi_e` + `V_Jplus1` is untested across every QH
+bank, and closing it would need a new block with no validated precedent.
+
+The three non-zero lines in this bank's diary are the long-standing DC2A argmax ties — Naive
+Policy 2, Naive Policyalt 1, Sophisticated Policy 1, unchanged from the 2026-08-22 run, with V and
+Valt agreeing to `9.313e-10` and `1.863e-09`. Note this diary no longer carries the per-tie
+`[diag]` lines that the 2026-08-22 run had; the V/Valt magnitudes beside the Policy difference are
+what identify them as ties.
+
+**Two caveats on bank 1's reach.** The run OOMs at config 40 (`d1_z_e_nosemiz_with2A1`), a
 pre-existing ceiling; because the call is not commented out, the OOM *aborts the script*, so
 configs 41–48 only run when the post-40 part is invoked separately. And one non-zero remains in the
 diary — `Divide-and-conquer (DC2A)` Policy `1.000e+00` with V agreeing to `1.863e-09` — which is an
@@ -554,10 +586,11 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: bank 1 of the
-  V_Jplus1 project landed on 2026-09-02** (see the section below), giving `CoreFHorzExpAssetTests`
-  V_Jplus1 blocks in all 48 subcodes. The other eleven banks in that family — ExpAssetU, e, z, ze,
-  semiz and all six QH mirrors — are still at zero (re-checked 2026-09-02).
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1 and 2 of
+  the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
+  `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
+  ten banks in that family — ExpAssetU, e, z, ze, semiz and their five QH mirrors — are still at
+  zero (re-checked 2026-09-02).
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
