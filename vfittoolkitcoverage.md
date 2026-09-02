@@ -544,6 +544,29 @@ under `%.3e` (the exponential banks hide it under `%2.8f`). Toolkit side: 18
 GI2A block in `ValueFnFromPolicy_FHorz_AmbiguityAversion` (a2prime folded into the linear index,
 QH-style).
 
+**The riskyasset tier followed on 2026-09-02** (spec: `AmbiguityAversion_RiskyAsset_proposal.md`
+in the toolkit repo; bank: `CoreFHorzRiskyAssetTests/withAmbiguityAversion/`, 240 checks, fully
+green after three debug iterations). u is treated as AMBIGUITY, not risk: `ambiguity_pi_u`
+([N_u, max(n_ambiguity)]) is mandatory in this combination — the agent does not know the risky
+return distribution — and noz+noe becomes a valid ambiguity model (pure return ambiguity), unlike
+the standard-asset family. Sequential mins innermost-first: e on the grid, z at the a2 lottery
+(the lottery — the riskyasset analog of the standard family's aprime interpolation — is
+conditional on the prior), u last; the d2 riskyshare refinement max comes after all the mins.
+Tiers: noa1 (base only, structural) and withA1 (all four methods); 40 raws + 4 dispatchers +
+FromPolicy base/GI + the setup subfn's riskyasset block. T1 (identical priors = vNM) is bit-exact
+at all four methods in both d-variants via running-argmin component tracking. The worse-pi_u-binds
+cross test is the marquee economics: the ambiguity-averse investor behaves as if facing the worst
+return distribution. Three iteration finds worth remembering: dead `aprimeProbsK=aprimeProbs;`
+initializers (the wrap assumed a variable the riskyasset donors never define — they build the
+probs fresh inside the segment); the e-min stage emitting `EV` where the z-stack reads `EVpre`;
+and the squeeze-form u-min collapsing `EV` in place (priors 2+ summed garbage — same bug class
+the main tier caught in its e-only raws). One documented DESIGN DEVIATION: the withA1 a1
+grid-interp layer is min-then-interp (all mins and the d2 max at the coarse a1prime nodes, then
+`interp1` of the worst-case EV) — moving the mins to the fine grid would drag the d2 max there
+too and break T1 against the vNM donors' max-at-coarse-then-interp; FromPolicy GI mirrors the
+raws with per-corner min pipelines. Deferred: semiz (as everywhere in AA) and with2A1 for
+riskyasset (explicit errors).
+
 The former honest gap (DC/GI-tier `V_Jplus1` branches unexercised) is CLOSED — and closing it
 paid immediately: the companion GI leg caught a real bug on its first run. `interp1` returns the
 **query's** shape when its value input is a vector, and the e-only GI1 raws' per-prior `ambEV`
