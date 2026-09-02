@@ -545,9 +545,12 @@ GI2A block in `ValueFnFromPolicy_FHorz_AmbiguityAversion` (a2prime folded into t
 QH-style).
 
 **The riskyasset tier followed on 2026-09-02** (spec: `AmbiguityAversion_RiskyAsset_proposal.md`
-in the toolkit repo; bank: `CoreFHorzRiskyAssetTests/withAmbiguityAversion/`, 240 checks, fully
-green after three debug iterations). u is treated as AMBIGUITY, not risk: `ambiguity_pi_u`
-([N_u, max(n_ambiguity)]) is mandatory in this combination — the agent does not know the risky
+in the toolkit repo; bank: `CoreFHorzRiskyAssetTests/withAmbiguityAversion/`, 220 checks, fully
+green after three debug iterations; originally 240 — the 20 lowmemory checks in the four noz+noe
+subcodes were removed 2026-09-02 as vacuous: with zero shocks lowmemory is silently discarded, so
+each check re-solved the identical problem and compared it to itself). u is treated as
+AMBIGUITY, not risk: `ambiguity_pi_u` ([N_u, max(n_ambiguity)]) is mandatory in this
+combination — the agent does not know the risky
 return distribution — and noz+noe becomes a valid ambiguity model (pure return ambiguity), unlike
 the standard-asset family. Sequential mins innermost-first: e on the grid, z at the a2 lottery
 (the lottery — the riskyasset analog of the standard family's aprime interpolation — is

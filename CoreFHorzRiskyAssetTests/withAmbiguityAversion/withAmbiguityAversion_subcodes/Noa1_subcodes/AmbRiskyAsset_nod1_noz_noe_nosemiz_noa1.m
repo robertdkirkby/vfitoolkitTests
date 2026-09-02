@@ -35,12 +35,9 @@ vfoptions1=vfoptions;
 V1fromPolicy=ValueFnFromPolicy_FHorz(Policy1,n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,vfoptions1);
 fprintf('ValueFnFromPolicy, this should be zero: %.3e \n',max(abs(V1fromPolicy(:)-V1(:))))
 
-% lowmemory
-vfoptions1.lowmemory=1;
-[V1B,Policy1B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
-fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(V1(:)-V1B(:))))
-fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy1B(:))))
-vfoptions1.lowmemory=0;
+% Note: lowmemory is not tested in the noz+noe cases (lowmemory loops over the shock
+% dimensions, of which there are none here, so it is silently discarded); it is
+% tested in the z and e cases.
 
 %%
 output=struct(); % Not currently used for anything. Maybe will do so later.
