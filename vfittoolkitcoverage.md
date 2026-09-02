@@ -286,17 +286,24 @@ ExperienceAsset row also drops 400 → 384: that figure was counting all `.m` fi
 including its 16 dispatchers, while every other row counted `*_raw.m` only. **This table is
 `*_raw.m` only** — dispatchers are not raws and are counted in the prose, not here.
 
-| family | total raws | QH | EZ | AA | core |
-|---|---|---|---|---|---|
-| baseline (FHorz, excl. asset families) | 430 | 224 | 40 | 24 | 142 |
-| ExperienceAsset | 384 | 256 | 0 | 0 | 128 |
-| ExperienceAssetu | 384 | 256 | 0 | 0 | 128 |
-| ExperienceAssete | 192 | 128 | 0 | 0 | 64 |
-| ExperienceAssetz | 192 | 128 | 0 | 0 | 64 |
-| ExperienceAssetze | 96 | 64 | 0 | 0 | 32 |
-| ExperienceAssetsemiz | 192 | 128 | 0 | 0 | 64 |
-| RiskyAsset | 208 | 0 | 80 | 0 | 128 |
-| ResidualAsset | 4 | 0 | 0 | 0 | 4 |
+Re-counted 2026-09-02: GulPesendorfer's 7 old-style plain raws (never counted, and never
+exercised — the run-1 diary caught a pre-split-Policy2-vs-UnKron mismatch and a 3-D kron in
+them) grew to 32 modern ones ({plain, DC1, GI1, DC1_GI1} × {nod,d} × {noz_noe, z, noz_e, z_e};
+unlike AA, GP works with no shocks, so 4 shock combos not 3), all GPU-green against the new
+withGulPesendorferPrefs bank (266 zero-checks, figs 1-8). The GP column (and the baseline
+total, 430 → 462) is new. No 2A/semiz GP raws yet (tier dispatchers error on those).
+
+| family | total raws | QH | EZ | AA | GP | core |
+|---|---|---|---|---|---|---|
+| baseline (FHorz, excl. asset families) | 462 | 224 | 40 | 24 | 32 | 142 |
+| ExperienceAsset | 384 | 256 | 0 | 0 | 0 | 128 |
+| ExperienceAssetu | 384 | 256 | 0 | 0 | 0 | 128 |
+| ExperienceAssete | 192 | 128 | 0 | 0 | 0 | 64 |
+| ExperienceAssetz | 192 | 128 | 0 | 0 | 0 | 64 |
+| ExperienceAssetze | 96 | 64 | 0 | 0 | 0 | 32 |
+| ExperienceAssetsemiz | 192 | 128 | 0 | 0 | 0 | 64 |
+| RiskyAsset | 208 | 0 | 80 | 0 | 0 | 128 |
+| ResidualAsset | 4 | 0 | 0 | 0 | 0 | 4 |
 
 **Every experience-asset family is now at exactly 2× its core count** — one Naive and one
 Sophisticated raw per exponential raw, which is the expected ratio. The two families that were
