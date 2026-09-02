@@ -293,9 +293,20 @@ unlike AA, GP works with no shocks, so 4 shock combos not 3), all GPU-green agai
 withGulPesendorferPrefs bank (266 zero-checks, figs 1-8). The GP column (and the baseline
 total, 430 → 462) is new. No 2A/semiz GP raws yet (tier dispatchers error on those).
 
+Re-counted 2026-09-03: GulPesendorfer 32 → 88 (baseline total 462 → 518): the semiz tier
+(32 raws: {plain, DC1, GI1, DC1_GI1} × {d1,nod1} × {z,noz} × {e,noe}, per-d2 most-tempting
+collection) and the 2A tiers (24 raws: {DC2A, GI2A, DC2A_GI2A} × 8 combos) landed together,
+plus 4 SemiExo dispatchers, 2A branches in the GP DC/GI/DC_GI dispatchers, and
+ValueFnFromPolicy GP semiz + GI2A support. GPU-green against the extended bank (746
+zero-checks, figs 1-24, incl. a just-a-markov semiz-vs-markov equivalence at baseline
+temptation that is exact-zero at all four tiers). GP is now the only exotic preference at
+full {plain,DC,GI,DC+GI} × {1A,2A} × {nosemiz,semiz(1A)} coverage. Note: GP holds the
+return matrix and its temptation twin simultaneously (~2x core memory), so the biggest
+bank cases run their moments blocks on reduced grids.
+
 | family | total raws | QH | EZ | AA | GP | core |
 |---|---|---|---|---|---|---|
-| baseline (FHorz, excl. asset families) | 462 | 224 | 40 | 24 | 32 | 142 |
+| baseline (FHorz, excl. asset families) | 518 | 224 | 40 | 24 | 88 | 142 |
 | ExperienceAsset | 384 | 256 | 0 | 0 | 0 | 128 |
 | ExperienceAssetu | 384 | 256 | 0 | 0 | 0 | 128 |
 | ExperienceAssete | 192 | 128 | 0 | 0 | 0 | 64 |

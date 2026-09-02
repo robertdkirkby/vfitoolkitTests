@@ -39,18 +39,8 @@ simoptions2=simoptions;
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(V1(:)-V2(:))))
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy2(:))))
 
-% lowmemory
-vfoptions1.lowmemory=1;
-[V1B,Policy1B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
-fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(V1(:)-V1B(:))))
-fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy1B(:))))
-vfoptions1.lowmemory=0;
-
-vfoptions2.lowmemory=1;
-[V2B,Policy2B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions2);
-fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(V2(:)-V2B(:))))
-fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(Policy2(:)-Policy2B(:))))
-vfoptions2.lowmemory=0;
+% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
+% of which there are none here); it is tested in the cases with z and/or e.
 
 %%
 % V from Policy
@@ -81,18 +71,8 @@ simoptions4.ngridinterp=vfoptions4.ngridinterp;
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(V3(:)-V4(:))))
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy4(:))))
 
-% lowmemory
-vfoptions3.lowmemory=1;
-[V3B,Policy3B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
-fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(V3(:)-V3B(:))))
-fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy3B(:))))
-vfoptions3.lowmemory=0;
-
-vfoptions4.lowmemory=1;
-[V4B,Policy4B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
-fprintf('lowmemory=1 (with DC+GI), this should be zero: %.3e \n',max(abs(V4(:)-V4B(:))))
-fprintf('lowmemory=1 (with DC+GI), this should be zero: %.3e \n',max(abs(Policy4(:)-Policy4B(:))))
-vfoptions4.lowmemory=0;
+% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
+% of which there are none here); it is tested in the cases with z and/or e.
 
 %%
 % V from Policy

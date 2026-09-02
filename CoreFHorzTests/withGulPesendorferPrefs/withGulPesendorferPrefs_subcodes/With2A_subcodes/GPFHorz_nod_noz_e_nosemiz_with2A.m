@@ -1,26 +1,35 @@
-function output=GPFHorz_d_noz_noe_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
+function output=GPFHorz_nod_noz_e_nosemiz_with2A(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
 
 % Setup vfoptions and simoptions
 vfoptions=struct();
 simoptions=struct();
+vfoptions.n_e=vfoptionsbaseline.n_e;
+vfoptions.e_grid=vfoptionsbaseline.e_grid;
+vfoptions.pi_e=vfoptionsbaseline.pi_e;
+simoptions.n_e=simoptionsbaseline.n_e;
+simoptions.e_grid=simoptionsbaseline.e_grid;
+simoptions.pi_e=simoptionsbaseline.pi_e;
 % Do the current setup
+n_d=0;
+d_grid=[];
 n_z=0;
 z_grid=[];
 pi_z=[];
 % zeros assets, mid points for any shocks
-jequaloneDist=zeros(n_a_big,1,'gpuArray'); % Note: based on n_a_big, not n_a
-jequaloneDist(1)=1;
+jequaloneDist=zeros([n_a_big,vfoptions.n_e],'gpuArray'); % Note: based on n_a_big, not n_a
+jequaloneDist(1,1,ceil(vfoptions.n_e/2))=1; % no assets, midpoint shock
 
-ReturnFn=@(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension) ReturnFn_d_noz_noe_nosemiz(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension);
+ReturnFn=@(a1prime,a2prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension,phi1,phi2) ReturnFn_nod_noz_e_nosemiz_with2A(a1prime,a2prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension,phi1,phi2);
 
 % Setup some FnsToEvaluate
-FnsToEvaluate.assets=@(d,aprime,a) a;
-FnsToEvaluate.earnings=@(d,aprime,a,w,kappa_j) w*kappa_j*d;
+FnsToEvaluate.assets=@(a1prime,a2prime,a1,a2,e) a1;
+FnsToEvaluate.house=@(a1prime,a2prime,a1,a2,e) a2;
+FnsToEvaluate.earnings=@(a1prime,a2prime,a1,a2,e,w,kappa_j) w*kappa_j*e;
 
 
 %% Gul-Pesendorfer: temptation and self-control
 vfoptions.exoticpreferences='GulPesendorfer';
-vfoptions.temptationFn=@(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension) GPTemptationFn_d_noz_noe_nosemiz(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension);
+vfoptions.temptationFn=@(a1prime,a2prime,a1,a2,e,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension) GPTemptationFn_nod_noz_e_nosemiz_with2A(a1prime,a2prime,a1,a2,e,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension);
 % Consumption is tempting: v = lambdaGP*u_c(c) + shiftGP (lambdaGP and shiftGP sit in Params)
 
 %%
@@ -37,8 +46,18 @@ simoptions2=simoptions;
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(V1(:)-V2(:))))
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy2(:))))
 
-% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
-% of which there are none here); it is tested in the cases with z and/or e.
+% lowmemory
+vfoptions1.lowmemory=1;
+[V1B,Policy1B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
+fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(V1(:)-V1B(:))))
+fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy1B(:))))
+vfoptions1.lowmemory=0;
+
+vfoptions2.lowmemory=1;
+[V2B,Policy2B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions2);
+fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(V2(:)-V2B(:))))
+fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(Policy2(:)-Policy2B(:))))
+vfoptions2.lowmemory=0;
 
 %%
 % V from Policy
@@ -69,8 +88,18 @@ simoptions4.ngridinterp=vfoptions4.ngridinterp;
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(V3(:)-V4(:))))
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy4(:))))
 
-% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
-% of which there are none here); it is tested in the cases with z and/or e.
+% lowmemory
+vfoptions3.lowmemory=1;
+[V3B,Policy3B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
+fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(V3(:)-V3B(:))))
+fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy3B(:))))
+vfoptions3.lowmemory=0;
+
+vfoptions4.lowmemory=1;
+[V4B,Policy4B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
+fprintf('lowmemory=1 (with DC+GI), this should be zero: %.3e \n',max(abs(V4(:)-V4B(:))))
+fprintf('lowmemory=1 (with DC+GI), this should be zero: %.3e \n',max(abs(Policy4(:)-Policy4B(:))))
+vfoptions4.lowmemory=0;
 
 %%
 % V from Policy
@@ -124,11 +153,14 @@ clear V2b V4b StationaryDist2 StationaryDist4 % Policy2b Policy4b
 
 %% Do some graphs of the age-conditional to see them
 fig=figure(figure_c);
-subplot(2,1,1); plot(1:1:N_j,AgeConditionalStats1.earnings.Mean, 1:1:N_j,AgeConditionalStats2.earnings.Mean, 1:1:N_j,AgeConditionalStats3.earnings.Mean, 1:1:N_j,AgeConditionalStats4.earnings.Mean)
+subplot(3,1,1); plot(1:1:N_j,AgeConditionalStats1.earnings.Mean, 1:1:N_j,AgeConditionalStats2.earnings.Mean, 1:1:N_j,AgeConditionalStats3.earnings.Mean, 1:1:N_j,AgeConditionalStats4.earnings.Mean)
 title('Earnings Mean')
 legend('1','2','3','4')
-subplot(2,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
+subplot(3,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
 title('Assets Std Dev')
+legend('1','2','3','4')
+subplot(3,1,3); plot(1:1:N_j,AgeConditionalStats1.house.Median, 1:1:N_j,AgeConditionalStats2.house.Median, 1:1:N_j,AgeConditionalStats3.house.Median, 1:1:N_j,AgeConditionalStats4.house.Median)
+title('House Median')
 legend('1','2','3','4')
 
 %%

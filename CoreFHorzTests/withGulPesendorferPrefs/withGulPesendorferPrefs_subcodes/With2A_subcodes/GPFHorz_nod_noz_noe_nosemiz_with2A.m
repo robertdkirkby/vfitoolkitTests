@@ -1,26 +1,29 @@
-function output=GPFHorz_d_noz_noe_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
+function output=GPFHorz_nod_noz_noe_nosemiz_with2A(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
 
 % Setup vfoptions and simoptions
 vfoptions=struct();
 simoptions=struct();
 % Do the current setup
+n_d=0;
 n_z=0;
+d_grid=[];
 z_grid=[];
 pi_z=[];
 % zeros assets, mid points for any shocks
-jequaloneDist=zeros(n_a_big,1,'gpuArray'); % Note: based on n_a_big, not n_a
-jequaloneDist(1)=1;
+jequaloneDist=zeros([n_a_big,1],'gpuArray'); % Note: based on n_a_big, not n_a
+jequaloneDist(1,1)=1; % no assets
 
-ReturnFn=@(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension) ReturnFn_d_noz_noe_nosemiz(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension);
+ReturnFn=@(a1prime,a2prime,a1,a2,r,w,kappa_j,sigma,agej,Jr,pension,phi1,phi2) ReturnFn_nod_noz_noe_nosemiz_with2A(a1prime,a2prime,a1,a2,r,w,kappa_j,sigma,agej,Jr,pension,phi1,phi2);
 
 % Setup some FnsToEvaluate
-FnsToEvaluate.assets=@(d,aprime,a) a;
-FnsToEvaluate.earnings=@(d,aprime,a,w,kappa_j) w*kappa_j*d;
+FnsToEvaluate.assets=@(a1prime,a2prime,a1,a2) a1;
+FnsToEvaluate.house=@(a1prime,a2prime,a1,a2) a2;
+FnsToEvaluate.earnings=@(a1prime,a2prime,a1,a2,w,kappa_j) w*kappa_j;
 
 
 %% Gul-Pesendorfer: temptation and self-control
 vfoptions.exoticpreferences='GulPesendorfer';
-vfoptions.temptationFn=@(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension) GPTemptationFn_d_noz_noe_nosemiz(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension);
+vfoptions.temptationFn=@(a1prime,a2prime,a1,a2,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension) GPTemptationFn_nod_noz_noe_nosemiz_with2A(a1prime,a2prime,a1,a2,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension);
 % Consumption is tempting: v = lambdaGP*u_c(c) + shiftGP (lambdaGP and shiftGP sit in Params)
 
 %%
@@ -124,11 +127,14 @@ clear V2b V4b StationaryDist2 StationaryDist4 % Policy2b Policy4b
 
 %% Do some graphs of the age-conditional to see them
 fig=figure(figure_c);
-subplot(2,1,1); plot(1:1:N_j,AgeConditionalStats1.earnings.Mean, 1:1:N_j,AgeConditionalStats2.earnings.Mean, 1:1:N_j,AgeConditionalStats3.earnings.Mean, 1:1:N_j,AgeConditionalStats4.earnings.Mean)
+subplot(3,1,1); plot(1:1:N_j,AgeConditionalStats1.earnings.Mean, 1:1:N_j,AgeConditionalStats2.earnings.Mean, 1:1:N_j,AgeConditionalStats3.earnings.Mean, 1:1:N_j,AgeConditionalStats4.earnings.Mean)
 title('Earnings Mean')
 legend('1','2','3','4')
-subplot(2,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
+subplot(3,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
 title('Assets Std Dev')
+legend('1','2','3','4')
+subplot(3,1,3); plot(1:1:N_j,AgeConditionalStats1.house.Median, 1:1:N_j,AgeConditionalStats2.house.Median, 1:1:N_j,AgeConditionalStats3.house.Median, 1:1:N_j,AgeConditionalStats4.house.Median)
+title('House Median')
 legend('1','2','3','4')
 
 %%

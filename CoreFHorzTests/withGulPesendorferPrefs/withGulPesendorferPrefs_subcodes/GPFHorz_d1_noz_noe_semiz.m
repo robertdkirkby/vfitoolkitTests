@@ -1,26 +1,36 @@
-function output=GPFHorz_d_noz_noe_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
+function output=GPFHorz_d1_noz_noe_semiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c)
+
+% n_d=n_d_semiz;
+% d_grid=d_grid_semiz;
 
 % Setup vfoptions and simoptions
-vfoptions=struct();
-simoptions=struct();
+vfoptions.n_semiz=vfoptionsbaseline.n_semiz;
+vfoptions.semiz_grid=vfoptionsbaseline.semiz_grid;
+vfoptions.SemiExoStateFn=vfoptionsbaseline.SemiExoStateFn;
+vfoptions.n_semiz=vfoptionsbaseline.n_semiz;
+simoptions.n_semiz=simoptionsbaseline.n_semiz;
+simoptions.semiz_grid=simoptionsbaseline.semiz_grid;
+simoptions.SemiExoStateFn=simoptionsbaseline.SemiExoStateFn;
+simoptions.n_semiz=simoptionsbaseline.n_semiz;
+simoptions.d_grid=d_grid;
 % Do the current setup
 n_z=0;
 z_grid=[];
 pi_z=[];
 % zeros assets, mid points for any shocks
-jequaloneDist=zeros(n_a_big,1,'gpuArray'); % Note: based on n_a_big, not n_a
-jequaloneDist(1)=1;
+jequaloneDist=zeros(n_a_big,vfoptions.n_semiz,'gpuArray'); % Note: based on n_a_big, not n_a
+jequaloneDist(1,ceil(vfoptions.n_semiz/2))=1;
 
-ReturnFn=@(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension) ReturnFn_d_noz_noe_nosemiz(d,aprime,a,r,w,kappa_j,sigma,eta,varphi,agej,Jr,pension);
+ReturnFn=@(d1,d2,aprime,a,semiz,r,w,kappa_j,sigma,agej,Jr,pension,eta,varphi,uempbenefit,searcheffortcost) ReturnFn_d1_noz_noe_semiz(d1,d2,aprime,a,semiz,r,w,kappa_j,sigma,agej,Jr,pension,eta,varphi,uempbenefit,searcheffortcost);
 
 % Setup some FnsToEvaluate
-FnsToEvaluate.assets=@(d,aprime,a) a;
-FnsToEvaluate.earnings=@(d,aprime,a,w,kappa_j) w*kappa_j*d;
+FnsToEvaluate.assets=@(d1,d2,aprime,a,semiz) a;
+FnsToEvaluate.earnings=@(d1,d2,aprime,a,semiz,w,kappa_j) w*kappa_j*d1*semiz;
 
 
 %% Gul-Pesendorfer: temptation and self-control
 vfoptions.exoticpreferences='GulPesendorfer';
-vfoptions.temptationFn=@(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension) GPTemptationFn_d_noz_noe_nosemiz(d,aprime,a,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension);
+vfoptions.temptationFn=@(d1,d2,aprime,a,semiz,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension,uempbenefit) GPTemptationFn_d1_noz_noe_semiz(d1,d2,aprime,a,semiz,lambdaGP,shiftGP,r,w,kappa_j,sigma,agej,Jr,pension,uempbenefit);
 % Consumption is tempting: v = lambdaGP*u_c(c) + shiftGP (lambdaGP and shiftGP sit in Params)
 
 %%
@@ -37,8 +47,18 @@ simoptions2=simoptions;
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(V1(:)-V2(:))))
 fprintf('Divide-and-conquer, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy2(:))))
 
-% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
-% of which there are none here); it is tested in the cases with z and/or e.
+% lowmemory
+vfoptions1.lowmemory=1;
+[V1B,Policy1B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
+fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(V1(:)-V1B(:))))
+fprintf('lowmemory=1, this should be zero: %.3e \n',max(abs(Policy1(:)-Policy1B(:))))
+vfoptions1.lowmemory=0;
+
+vfoptions2.lowmemory=1;
+[V2B,Policy2B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions2);
+fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(V2(:)-V2B(:))))
+fprintf('lowmemory=1 (with DC), this should be zero: %.3e \n',max(abs(Policy2(:)-Policy2B(:))))
+vfoptions2.lowmemory=0;
 
 %%
 % V from Policy
@@ -69,8 +89,18 @@ simoptions4.ngridinterp=vfoptions4.ngridinterp;
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(V3(:)-V4(:))))
 fprintf('Divide-and-conquer (with Grid Interp Layer), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy4(:))))
 
-% Note: lowmemory is not tested in the noz_noe cases (lowmemory=1 loops over the shocks,
-% of which there are none here); it is tested in the cases with z and/or e.
+% lowmemory
+vfoptions3.lowmemory=1;
+[V3B,Policy3B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions3);
+fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(V3(:)-V3B(:))))
+fprintf('lowmemory=1 (with GI), this should be zero: %.3e \n',max(abs(Policy3(:)-Policy3B(:))))
+vfoptions3.lowmemory=0;
+
+vfoptions4.lowmemory=1;
+[V4B,Policy4B]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions4);
+fprintf('lowmemory=1  (with DC+GI), this should be zero: %.3e \n',max(abs(V4(:)-V4B(:))))
+fprintf('lowmemory=1  (with DC+GI), this should be zero: %.3e \n',max(abs(Policy4(:)-Policy4B(:))))
+vfoptions4.lowmemory=0;
 
 %%
 % V from Policy
@@ -82,7 +112,7 @@ clear V3 V4 V3B V4B Policy3 Policy4 Policy3B Policy4B V3fromPolicy
 
 %% Use a really big a_grid, then the moments should be essentially the same with/without grid interpolation
 % Note: Gul-Pesendorfer only changes the value fn solve (Policy maximizes the tempted
-% objective); everything downstream of Policy is standard code, using the regular pi_z/pi_e.
+% objective); everything downstream of Policy is standard code.
 
 [V1b,Policy1b]=ValueFnIter_Case1_FHorz(n_d,n_a_big,n_z,N_j,d_grid,a_grid_big,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
 StationaryDist1=StationaryDist_FHorz_Case1(jequaloneDist,AgeWeightParamNames,Policy1b,n_d,n_a_big,n_z,N_j,pi_z,Params,simoptions1);
@@ -130,6 +160,7 @@ legend('1','2','3','4')
 subplot(2,1,2); plot(1:1:N_j,AgeConditionalStats1.assets.StdDeviation, 1:1:N_j,AgeConditionalStats2.assets.StdDeviation, 1:1:N_j,AgeConditionalStats3.assets.StdDeviation, 1:1:N_j,AgeConditionalStats4.assets.StdDeviation)
 title('Assets Std Dev')
 legend('1','2','3','4')
+% ylim([0,0.01]) % If you want to make graph look nicer
 
 %%
 output=struct(); % Not currently used for anything. Maybe will do so later.
