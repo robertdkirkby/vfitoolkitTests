@@ -17,13 +17,13 @@ Last updated: 2026-09-02
 | CoreFHorzTests | — | 16+6x | 16+4x | 32 | 10 | 32/32 | 32 + 32 QH + 16 EZ | 142 | 42 | 24 | 16 |
 | ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
-| ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 | 64 | 24 | — | — |
+| ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 0 | 64 | 24 | — | — |
 | ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 0 | 32 | 12 | — | — |
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **376** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **400** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -613,6 +613,22 @@ defects track provenance. Bank 5 is hand-maintained exponential code and is comp
 provenance split is real for the QH mirrors but is not a reliable predictor for the exponential
 families.
 
+#### Bank 6: CoreFHorzQHExpAsseteTests (2026-09-04) — the first complete bank
+
+All 24 subcodes gained a V_Jplus1 section (**+1520 checks**). **The cleanest run in the project**:
+all 24 subcodes ran, **all 1520 checks were reached and every one is exactly zero**, nothing
+anywhere in the diary above the ULP floor, and **no errors at all** — not even the with2A1 OOM
+that stopped every previous bank short.
+
+Bank 2's QH generator applied **unchanged**, which the `_nosemiz` rename made possible: without it
+this family would have needed a token override. The two QH banks now share one generator, as the
+two exponential banks share the other.
+
+One method difference worth keeping: QH banks compute no agent distribution, so there is no
+`jequaloneDist` to read asset dimensions from. Take them from the setup instead —
+`n_a_justexpasset=13` (a=1), `n_a=[101,13]` (a=2), `n_a_2A1=[51,2,13]` (a=3) — after confirming the
+QH main script passes the same variables as its exponential twin.
+
 ### AmbiguityAversion closed (2026-09-01)
 
 `CoreFHorzAmbiguityTests` was written test-first on 2026-08-28 (9 files: 6 variants + 2
@@ -741,11 +757,11 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-5 of
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-6 of
   the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
   `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
-  seven banks in that family — QH ExpAssete, and z / ze / semiz with their three QH mirrors — are
-  still at zero (re-checked 2026-09-04).
+  six banks in that family — z / ze / semiz and their three QH mirrors — are still at zero
+  (re-checked 2026-09-04).
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
