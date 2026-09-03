@@ -3,7 +3,7 @@ function output=CoreFHorzExpAssete_CrossTests2_d1(n_d,n_a,n_a_big,n_z,N_j,d_grid
 % Cross-test 2 for experienceassete (d1 version): 'fake' experienceassete whose aprimeFn ignores e,
 % vs plain experienceasset. Both have e present in the model.
 
-ReturnFn=@(d1,d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_noz_e(d1,d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
+ReturnFn=@(d1,d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_noz_e_nosemiz(d1,d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
 
 aprimeFn_fakee=@(d2,a2,e,phi1,phi2) phi1*(1-d2)+(1-phi2)*a2;
 aprimeFn_plain=@(d2,a2,phi1,phi2) phi1*(1-d2)+(1-phi2)*a2;

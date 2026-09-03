@@ -15,7 +15,7 @@ z_grid=vfoptionsbaseline.e_grid;
 
 % ReturnFns (same formula, different shock variable name)
 ReturnFn_zside=@(d2,a,z,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssetz_nod1_z_noe_noa1(d2,a,z,r,w,kappa_j,sigma,agej,Jr,pension);
-ReturnFn_eside=@(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e_noa1(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension);
+ReturnFn_eside=@(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e_noa1_nosemiz(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension);
 
 % aprimeFns (same formula, different shock variable name)
 aprimeFn_z=@(d2,a2,z,phi1,phi2) phi1*(1-d2)*z+(1-phi2)*a2;

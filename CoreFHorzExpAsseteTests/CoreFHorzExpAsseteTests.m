@@ -48,22 +48,22 @@ addpath('./CoreFHorzExpAssete_ReturnFns/Noa1_ReturnFns/')
 
 %% without d1, without z, with e, noa1
 figure_c=1;
-output=CoreFHorzExpAssete_nod1_noz_e_noa1(n_d_withoutd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withoutd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_noz_e_noa1_nosemiz(n_d_withoutd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withoutd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with d1, without z, with e, noa1
 figure_c=2;
-output=CoreFHorzExpAssete_d1_noz_e_noa1(n_d_withd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_noz_e_noa1_nosemiz(n_d_withd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% without d1, with z, with e, noa1
 figure_c=3;
-output=CoreFHorzExpAssete_nod1_z_e_noa1(n_d_withoutd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withoutd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_z_e_noa1_nosemiz(n_d_withoutd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withoutd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with d1, with z, with e, noa1
 figure_c=4;
-output=CoreFHorzExpAssete_d1_z_e_noa1(n_d_withd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_z_e_noa1_nosemiz(n_d_withd1,n_a_justexpasset,n_a_justexpasset,n_z,N_j,d_grid_withd1,a_grid_justexpasset,a_grid_justexpasset,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% noa1 nosemiz cross-tests
@@ -132,7 +132,7 @@ output=CoreFHorzExpAssete_CrossTests2_d1_noa1_semiz(n_d_withd1semiz,n_a_justexpa
 
 %% without d1, without z, with e
 figure_c=9;
-output=CoreFHorzExpAssete_nod1_noz_e(n_d_withoutd1,n_a,n_a_big,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_noz_e_nosemiz(n_d_withoutd1,n_a,n_a_big,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with d1, without z, with e
@@ -141,7 +141,7 @@ a1_grid_notsobig=5*linspace(0,1,n_a_notsobig(1))'.^3; % to test Grid Interpolati
 a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=10;
-output=CoreFHorzExpAssete_d1_noz_e(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_noz_e_nosemiz(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% without d1, with z, with e
@@ -150,7 +150,7 @@ a1_grid_notsobig=5*linspace(0,1,n_a_notsobig(1))'.^3; % to test Grid Interpolati
 a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=11;
-output=CoreFHorzExpAssete_nod1_z_e(n_d_withoutd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_z_e_nosemiz(n_d_withoutd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withoutd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with d1, with z, with e
@@ -159,7 +159,7 @@ a1_grid_notsobig=5*linspace(0,1,n_a_notsobig(1))'.^3; % to test Grid Interpolati
 a_grid_notsobig=[a1_grid_notsobig;a2_grid];
 
 figure_c=12;
-output=CoreFHorzExpAssete_d1_z_e(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_z_e_nosemiz(n_d_withd1,n_a,n_a_notsobig,n_z,N_j,d_grid_withd1,a_grid,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 
@@ -253,22 +253,22 @@ a_grid_2A1_notsobig=[a1_grid_2A1_notsobig;a1_2_grid;a2_grid];
 
 %% with2A1, without d1, without z, with e
 figure_c=17;
-output=CoreFHorzExpAssete_nod1_noz_e_with2A1(n_d_withoutd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withoutd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_noz_e_with2A1_nosemiz(n_d_withoutd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withoutd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with2A1, with d1, without z, with e
 figure_c=18;
-output=CoreFHorzExpAssete_d1_noz_e_with2A1(n_d_withd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_noz_e_with2A1_nosemiz(n_d_withd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with2A1, without d1, with z, with e
 figure_c=19;
-output=CoreFHorzExpAssete_nod1_z_e_with2A1(n_d_withoutd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withoutd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_nod1_z_e_with2A1_nosemiz(n_d_withoutd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withoutd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with2A1, with d1, with z, with e
 figure_c=20;
-output=CoreFHorzExpAssete_d1_z_e_with2A1(n_d_withd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+output=CoreFHorzExpAssete_d1_z_e_with2A1_nosemiz(n_d_withd1,n_a_2A1,n_a_2A1_notsobig,n_z,N_j,d_grid_withd1,a_grid_2A1,a_grid_2A1_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
 exportgraphics(figure(figure_c),['./TestOutput/CoreFHorzExpAsseteTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
 
 %% with2A1 cross-tests

@@ -10,7 +10,7 @@ pi_z=repmat(vfoptionsbaseline.pi_e',vfoptionsbaseline.n_e,1);
 z_grid=vfoptionsbaseline.e_grid;
 
 % ReturnFns (same formula, different shock variable name)
-ReturnFn_eside=@(d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e(d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension);
+ReturnFn_eside=@(d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e_nosemiz(d2,a1prime,a1,a2,e,r,w,kappa_j,sigma,agej,Jr,pension);
 ReturnFn_zside=@(d2,a1prime,a1,a2,z,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssetz_nod1_z_noe(d2,a1prime,a1,a2,z,r,w,kappa_j,sigma,agej,Jr,pension);
 
 aprimeFn_e=@(d2,a2,e,phi1,phi2) phi1*(1-d2)*e+(1-phi2)*a2;

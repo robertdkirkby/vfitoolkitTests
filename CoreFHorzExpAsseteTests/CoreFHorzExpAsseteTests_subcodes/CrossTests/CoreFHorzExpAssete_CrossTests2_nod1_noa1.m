@@ -4,7 +4,7 @@ function output=CoreFHorzExpAssete_CrossTests2_nod1_noa1(n_d,n_a,n_a_big,n_z,N_j
 % noa1 version: the experience asset a2 is the only endogenous state.
 % Both models have e as an ordinary iid shock (used in the ReturnFn) -- only the asset-type machinery differs.
 
-ReturnFn=@(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e_noa1(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension);
+ReturnFn=@(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_noz_e_noa1_nosemiz(d2,a,e,r,w,kappa_j,sigma,agej,Jr,pension);
 
 % 'fake' experienceassete aprimeFn: takes e but ignores it
 aprimeFn_fakee=@(d2,a2,e,phi1,phi2) phi1*(1-d2)+(1-phi2)*a2;

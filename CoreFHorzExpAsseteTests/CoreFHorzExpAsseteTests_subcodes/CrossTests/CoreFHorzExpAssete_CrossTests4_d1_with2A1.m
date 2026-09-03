@@ -13,7 +13,7 @@ aprimeFn=vfoptionsbaseline.aprimeFn;
 Params.r2=0.08; % return on a1_2; irrelevant here as a1_2 is degenerate at 0, but must exist for the ReturnFn
 
 %% Model A: plain withA1 (single standard asset + experience asset), z and e
-ReturnFn_A=@(d1,d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_z_e(d1,d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
+ReturnFn_A=@(d1,d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_z_e_nosemiz(d1,d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
 vfoptionsA=struct(); vfoptionsA.experienceassete=1; vfoptionsA.aprimeFn=aprimeFn;
 vfoptionsA.n_e=vfoptionsbaseline.n_e; vfoptionsA.e_grid=vfoptionsbaseline.e_grid; vfoptionsA.pi_e=vfoptionsbaseline.pi_e;
 simoptionsA=struct(); simoptionsA.experienceassete=1; simoptionsA.aprimeFn=aprimeFn; simoptionsA.d_grid=d_grid; simoptionsA.a_grid=a_grid;
@@ -25,7 +25,7 @@ StationaryDist_A=StationaryDist_FHorz_Case1(jequaloneDist_A,AgeWeightParamNames,
 %% Model B: with2A1 but a1_2 degenerate (single grid point {0}) -> should equal Model A
 n_a_B=[n_a1,1,n_a2];
 a_grid_B=[a1_grid;0;a2_grid];
-ReturnFn_B=@(d1,d2,a1prime,a1_2prime,a1,a1_2,a2,z,e,r,r2,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_z_e_with2A1(d1,d2,a1prime,a1_2prime,a1,a1_2,a2,z,e,r,r2,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
+ReturnFn_B=@(d1,d2,a1prime,a1_2prime,a1,a1_2,a2,z,e,r,r2,w,kappa_j,sigma,varphi,eta,agej,Jr,pension) ReturnFn_ExpAssete_d1_z_e_with2A1_nosemiz(d1,d2,a1prime,a1_2prime,a1,a1_2,a2,z,e,r,r2,w,kappa_j,sigma,varphi,eta,agej,Jr,pension);
 vfoptionsB=struct(); vfoptionsB.experienceassete=1; vfoptionsB.aprimeFn=aprimeFn;
 vfoptionsB.n_e=vfoptionsbaseline.n_e; vfoptionsB.e_grid=vfoptionsbaseline.e_grid; vfoptionsB.pi_e=vfoptionsbaseline.pi_e;
 simoptionsB=struct(); simoptionsB.experienceassete=1; simoptionsB.aprimeFn=aprimeFn; simoptionsB.d_grid=d_grid; simoptionsB.a_grid=a_grid_B;

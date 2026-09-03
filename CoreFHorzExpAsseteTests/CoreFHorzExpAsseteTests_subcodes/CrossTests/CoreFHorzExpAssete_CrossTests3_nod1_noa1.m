@@ -36,8 +36,8 @@ simoptionsA=simoptions; simoptionsA.a_grid=a_grid;
 simoptionsB=simoptions; simoptionsB.a_grid=a_grid_B;
 
 %% z, e
-ReturnFn_A=@(d2,a,z,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_z_e_noa1(d2,a,z,e,r,w,kappa_j,sigma,agej,Jr,pension);
-ReturnFn_B=@(d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_z_e_noa1(d2,a2,z,e,r,w,kappa_j,sigma,agej,Jr,pension);
+ReturnFn_A=@(d2,a,z,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_z_e_noa1_nosemiz(d2,a,z,e,r,w,kappa_j,sigma,agej,Jr,pension);
+ReturnFn_B=@(d2,a1prime,a1,a2,z,e,r,w,kappa_j,sigma,agej,Jr,pension) ReturnFn_ExpAssete_nod1_z_e_noa1_nosemiz(d2,a2,z,e,r,w,kappa_j,sigma,agej,Jr,pension);
 
 jequaloneDist_A=zeros([n_a,n_z,vfoptions.n_e],'gpuArray');
 jequaloneDist_A(1,ceil(n_z/2),ceil(vfoptions.n_e/2))=1;
