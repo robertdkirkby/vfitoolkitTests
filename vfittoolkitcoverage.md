@@ -19,11 +19,11 @@ Last updated: 2026-09-02
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 24 | 64 | 24 | — | — |
-| ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 0 | 32 | 12 | — | — |
+| ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 12 | 32 | 12 | — | — |
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **424** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **436** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -645,6 +645,45 @@ DC+GI blocks with **34 of 34 checks exactly zero**, which is direct evidence for
 other 12 are in QH ExpAssetz raws and remain unvalidated until the QH bank runs** — a green bank 7
 does not clear them.
 
+#### Bank 8: CoreFHorzQHExpAssetzTests (2026-09-04) — two more defects, in generated code
+
+Written with bank 2's QH generator unchanged (+1520 checks, 8/8 exact reproduction). The first run
+reached 16 of 24 subcodes, 903 checks with 900 exactly zero, and surfaced **two defects — the
+seventh and eighth of the project, and the first found in generated QH code.**
+
+Both are the same class: **the `e`-stride term in `maxindexfull` must match whether `e` is looped
+at that lowmemory level**, and both are in the *Sophisticated* QH ExpAssetzSemiExo GI raws — the
+`Vunderbar` machinery that only the Sophisticated dual exercises (the Naive raws have no
+`V_ford3_under` at all and are structurally immune).
+
+| site | lm | defect | symptom |
+|---|---|---|---|
+| `...S_GI1_e_raw:263` | 0 | `(0:1:(1)-1)` where `(0:1:(N_e)-1)` belongs | **silent**: V 5.083e-01, Valt 1.943e+00, Policy 44 |
+| `...S_DC1_GI1_e_raw:385` | 0 | same | latent in that run |
+| `...S_DC1_GI1_e_raw:469` | 1 | an extra `N_e` stride where e *is* looped | `Index exceeds matrix dimension` |
+
+`(0:1:(1)-1)` evaluates to `0`, so at `lowmemory==0` — where e is not looped — **every e slice read
+from e=1's block**, which is why it returned plausible wrong numbers rather than erroring. All
+three now match their own in-loop counterparts byte-for-byte.
+
+**Sweep discipline, again.** The first pass reported **297** mismatches including hits in
+GPU-validated in-loop code, because one of its three rules ("e not looped but stride lacks `N_e`")
+is unsound: DC level-2 code indexes through `curraindex` and does not follow it. Restricted to the
+two rules that are wrong *on their face* — a literal `(1)` where a dimension size belongs, and an
+`N_e` stride in an e-looped branch — it gives **7 of 3014 sites**, of which **4 are harmless**:
+`(0:1:(1)-1)` in branches where e *is* looped is a no-op equivalent to omitting the term, and
+their in-loop twins carry identical text. That leaves the 3 above.
+
+#### Bank 9: CoreFHorzExpAssetzeTests (2026-09-04) — clean
+
+All 12 subcodes gained a V_Jplus1 section (**+312 checks**, `d4de909`). Green first run, no toolkit
+changes: all 12 subcodes ran, 270 checks reached, every one exactly zero, nothing above the ULP
+floor. One OOM in the largest configuration.
+
+**12 variants — the smallest bank in the project** — because both `z` and `e` are structural in
+`aprimeFn(d2,a2,z,e)`: no `noz` or `noe` leaves, so the grid is only
+`{d1,nod1} × {semiz,nosemiz} × 3 tiers` and the shock count is always 2 or 3.
+
 ### AmbiguityAversion closed (2026-09-01)
 
 `CoreFHorzAmbiguityTests` was written test-first on 2026-08-28 (9 files: 6 variants + 2
@@ -773,11 +812,11 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-7 of
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-9 of
   the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
   `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
-  five banks in that family — QH ExpAssetz, and ze / semiz with their two QH mirrors — are still
-  at zero (re-checked 2026-09-04).
+  three banks in that family — QH ExpAssetze, and semiz with its QH mirror — are still at zero.
+  QH ExpAssetz (bank 8) has its blocks written but is mid-triage after finding two defects.
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
