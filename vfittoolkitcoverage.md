@@ -18,12 +18,12 @@ Last updated: 2026-09-02
 | ExpAsset | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
-| ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 24 | 64 | 24 | — | — |
+| ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 12 | 32 | 12 | — | — |
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **436** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **460** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -649,7 +649,12 @@ does not clear them.
 
 Written with bank 2's QH generator unchanged (+1520 checks, 8/8 exact reproduction). The first run
 reached 16 of 24 subcodes, 903 checks with 900 exactly zero, and surfaced **two defects — the
-seventh and eighth of the project, and the first found in generated QH code.**
+seventh and eighth of the project, and the first found in generated QH code.** After the fix
+(`01e115aa`) the bank **completes entirely**: all 24 subcodes, all 1520 checks reached, every one
+exactly zero, no errors and no OOM. **It also retires the last 12 of the 15 `ca9cdc37` reshape
+sites**, verified by checking that the four `_z_e_semiz_with*A1` subcodes completed their GI and
+DC+GI blocks under both preferences with 50 of 50 checks zero each — so with bank 7's 3, that
+backlog is now empty.
 
 Both are the same class: **the `e`-stride term in `maxindexfull` must match whether `e` is looped
 at that lowmemory level**, and both are in the *Sophisticated* QH ExpAssetzSemiExo GI raws — the
@@ -816,7 +821,6 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
   `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
   three banks in that family — QH ExpAssetze, and semiz with its QH mirror — are still at zero.
-  QH ExpAssetz (bank 8) has its blocks written but is mid-triage after finding two defects.
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
