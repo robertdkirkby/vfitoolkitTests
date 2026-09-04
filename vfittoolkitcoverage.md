@@ -19,11 +19,11 @@ Last updated: 2026-09-02
 | ExpAssetU | 16+10x | 16+14x | 16+2x | 48 | 26 | 48/48 | 48 + 48 QH | 128 | 48 | — | — |
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
-| ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 12 | 32 | 12 | — | — |
+| ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 12 + 12 QH | 32 | 12 | — | — |
 | ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **460** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **472** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -817,10 +817,11 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-9 of
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-10 of
   the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
   `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
-  three banks in that family — QH ExpAssetze, and semiz with its QH mirror — are still at zero.
+  two banks in that family — ExpAssetsemiz and its QH mirror — are still at zero, and the
+  exponential one already has its blocks written.
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
