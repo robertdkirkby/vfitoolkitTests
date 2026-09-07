@@ -1,6 +1,7 @@
 # VFI Toolkit — test coverage
 
-Coverage of the FHorz core test banks. Tier is assigned from each subcode's directory
+Coverage of the FHorz core test banks. The transition-path banks are covered separately, in
+the FHorz transition-path section at the end. Tier is assigned from each subcode's directory
 (`Noa1_subcodes` / `With2A1_subcodes` / else), not its filename — filenames misattribute
 cross-tests. Format in the tier columns is `variants + cross-testsx`.
 
@@ -8,7 +9,7 @@ cross-tests. Format in the tier columns is `variants + cross-testsx`.
 withA1 subcodes sit at the top level of `..._subcodes/` and in `Semiz_subcodes/`. A tier rule
 that keys off directory names must fall through to withA1 for it, not skip it.
 
-Last updated: 2026-09-02
+Last updated: 2026-09-05
 
 ## CoreFHorzTests + the ExpAsset family + RiskyAsset + ResidAsset
 
@@ -20,10 +21,10 @@ Last updated: 2026-09-02
 | ExpAssete | 8+16x | 8+8x | 8+2x | 24 | 26 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetz | 8+16x | 8+8x | 8+4x | 24 | 28 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | ExpAssetze | 4+4x | 4+16x | 4+2x | 12 | 22 | 12/12 | 12 + 12 QH | 32 | 12 | — | — |
-| ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 0 | 64 | 24 | — | — |
+| ExpAssetsemiz | 8+4x | 8+6x | 8+2x | 24 | 12 | 24/24 | 24 + 24 QH | 64 | 24 | — | — |
 | RiskyAsset | 16+0x | 16+25x | 16+4x | 48 | 29 | 48/48 | 32 + 32 EZ | 128 | none | 50 | — |
 | ResidAsset | n/a | 16+22x | — | 16 | 22 | 16/16 ‡ | 16 | 4 ‡‡ | none | — | — |
-| **total** | | | | **276** | **201** | **276/276** | **472** | | **222** | **74** | **16** |
+| **total** | | | | **276** | **201** | **276/276** | **520** | | **222** | **74** | **16** |
 
 477 subtests in the main banks, plus 222 QH, 74 EZ and 16 AA = **789**.
 
@@ -689,6 +690,74 @@ floor. One OOM in the largest configuration.
 `aprimeFn(d2,a2,z,e)`: no `noz` or `noe` leaves, so the grid is only
 `{d1,nod1} × {semiz,nosemiz} × 3 tiers` and the shock count is always 2 or 3.
 
+#### Bank 10: CoreFHorzQHExpAssetzeTests (2026-09-04) — clean
+
+All 12 subcodes gained a V_Jplus1 section. Green first run, no toolkit changes: **880 V_Jplus1
+checks, every one exactly zero**, largest residual anywhere in the bank `5.329e-15`, no OOM. (It was
+recorded in the summary table at the time — `a58bebe` — but never written up here.)
+
+#### Bank 11: CoreFHorzExpAssetsemizTests (2026-09-07) — the largest defect of the project
+
+All 24 subcodes gained a V_Jplus1 section (**+528 checks**). Every V_Jplus1 check that ran was
+exactly zero, first time and after the fix below. But the bank also reported
+`ValueFnFromPolicy, this should be zero: Inf` in **all 8 noa1 subcodes** — not a V_Jplus1 failure,
+and worth chasing because it was confined to one tier of one family while the same family's withA1
+tier read `1.776e-15`.
+
+**The cause was not in ValueFnFromPolicy — it was in the solver, and it is toolkit-wide.** Every
+asset-interpolation site combines neighbouring nodes with weights summing to one. When a weight is
+exactly `0` and its node is `-Inf`, `0*(-Inf)` is `NaN`. Exact zero weights are routine: a2prime
+landing on a grid point, off either end of the grid, and the `skipinterp` guard, which zeroes the
+weight *precisely when the two nodes are equal* — so the guard written to handle the degenerate case
+manufactured a NaN in exactly that case. One age later `EV(isnan(EV))=0` turned the NaN into a
+continuation value of **zero**, pricing an infeasible dead end at 0. With CRRA utility negative
+throughout, zero beats almost any real continuation, so the policy was drawn *towards* infeasible
+states. The fingerprint was a spurious exact `-4.0000` = `F` at `c=uempbenefit=0.2` plus `beta*0`.
+
+Only this tier fired it because it needs both interpolation nodes infeasible, which needs an
+absorbing zero-consumption region: `a2_grid` starts at 0 and `aprimeFn` maps `(a2=0,semiz=0)` back to
+0, so `a2=0` is absorbing and at `semiz=1` gives `c=0` for every `d2`. The withA1 model escapes via
+the standard asset.
+
+Fixed at all 684 ExpAssetsemiz solver sites and the 8 ValueFnFromPolicy ones (`ac60a3ae`): **zero
+each product term BEFORE summing, never after**. On the 13x2x20 reproducer, `V` went from 70 NaN to
+0 and the 44 states where one side was infinite and the other finite went to 0. Remaining scope —
+2578 solver sites across 398 files in the other five families, 60 ValueFnFromPolicy sites, RiskyAsset
+unsurveyed — is in `InterpZeroWeightNaN_proposal.md` in the toolkit repo.
+
+Final run: **482 V_Jplus1 checks, all exactly zero**, all 8 `Inf` cleared to `4.441e-16`–`4.441e-15`.
+Fig 24 (`d1_z_e_with2A1`) OOMs in its big-`a_grid` section, which sits *before* its V_Jplus1 block, so
+34 of its checks never run — GPU capacity, not correctness. Moving that section after the block would
+recover them.
+
+#### Bank 12: CoreFHorzQHExpAssetsemizTests (2026-09-07) — closes the project
+
+All 24 subcodes gained a V_Jplus1 section (**+1520 checks**). **1520/1520 exactly zero, full run, no
+errors, no OOM.** Largest residual anywhere in the bank is `1.863e-09` = `2^-29`, one ULP at the
+known |V| ≈ 8.4e6 poor corner. Its 32 noa1 `ValueFnFromPolicy ... Inf` — the QH counterpart of bank
+11's 8 — were cleared by the same solver fix.
+
+### V_Jplus1 project closed (2026-09-07)
+
+Twelve banks, **8 toolkit defects, every one of them in a SemiExo path**, two of which returned
+silently wrong answers rather than erroring. Suite V_Jplus1 coverage went **160 → 520 subcodes**.
+Commits `337ae6b` (tests) and `ac60a3ae` (toolkit).
+
+Two lessons outlast the project:
+
+- **`max(abs(A-B))` ignores NaN.** Wherever both sides are NaN the check passes silently, so a
+  `0.000e+00` line can be comparing nothing. This is what hid the interpolation defect for so long,
+  and it means the noa1 checks in these banks were partly vacuous before the fix. When a result looks
+  too clean, count the finite / `-Inf` / `NaN` census on each side separately rather than trusting a
+  single max.
+- **A sweep needs a loose match and a reconciled count.** A strict end-of-line regex found 672 of the
+  684 ExpAssetsemiz sites; the 12 it missed carried a trailing `% [N_d2, N_a2, N_bothz]` shape
+  comment — and all 12 were in the `noa1_e` raws, the tier that actually fires. A partial sweep would
+  have left the most exposed files unfixed while reporting success.
+
+Deliberate gap, unchanged: **QH + age-dependent `pi_z`/`pi_e` + `V_Jplus1` is untested across every
+QH bank**, because the QH donor has no age-dependent block.
+
 ### AmbiguityAversion closed (2026-09-01)
 
 `CoreFHorzAmbiguityTests` was written test-first on 2026-08-28 (9 files: 6 variants + 2
@@ -817,11 +886,10 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   branches, since 2026-09-02 at ALL solver tiers in both its 1A and 2A models — and that
   coverage caught a real interp1 shape bug on its first run; see its section). So all three
   baseline preference mirrors now have V_Jplus1 coverage: QH and EZ per-variant (retrofitted),
-  AA via cross-test 4 at every tier. **The ExpAsset family is no longer at zero: banks 1-10 of
-  the V_Jplus1 project landed on 2026-09-02** (see the section below), giving
-  `CoreFHorzExpAssetTests` and its QH mirror V_Jplus1 blocks in all 48 subcodes each. The other
-  two banks in that family — ExpAssetsemiz and its QH mirror — are still at zero, and the
-  exponential one already has its blocks written.
+  AA via cross-test 4 at every tier. **The ExpAsset family is no longer a gap at all: the
+  twelve-bank V_Jplus1 project closed on 2026-09-07** (see the section below), giving every
+  variant subcode in all six families — and each family's QH mirror — a V_Jplus1 block. The
+  suite total went 160 → 520 subcodes.
 
   **The exposed-raw count was wrong and is now measured.** This entry previously said 660
   ExpAsset-family raws carry a `V_Jplus1` branch, itemised per family; those per-family figures
@@ -917,7 +985,9 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   - `CoreFHorzQHTests` (baseline, 32 subtests) — 4016 checks, none nonzero. Note this diary uses
     a different closing-marker style from the ExpAsset-family banks, so the per-figure counting
     used above does not apply to it.
-  - `CoreFHorzTPathQHTests` — bank exists but has **never produced a diary**; status unknown.
+  - `CoreFHorzTPathQHTests` — bank exists (440 check sites) but has **never produced a
+    diary**. See the FHorz transition-path section at the end of this doc: it is one of five
+    TPath banks in that state.
 - **QH**: no mirror at all for ExpAssetU, ExpAssetsemiz or RiskyAsset. For ExpAssetsemiz
   and ExpAssetU this is a *toolkit* gap — neither family has any QH raws — so closing it
   means solver code, not tests.
@@ -1011,3 +1081,189 @@ ReturnFn returns `-Inf` wherever `c<=0`, so the plain max is `Inf` and silently 
   memory. Where it lands matters: in ExpAsset/ExpAssetU it hits a *leading* brute-force
   baseline and takes the rest of the script with it; in ExpAssete/ExpAssetz/ExpAssetsemiz
   it hits the *trailing* big-grid block, after that subtest's exact checks have printed.
+
+## FHorz transition-path (TPath) banks
+
+Everything above is the *stationary* FHorz suite. The transition-path banks are a separate set,
+excluded from the main table and from every count in it (the `panel vs dist` note already says
+"TPath banks excluded throughout"). Surveyed 2026-09-05.
+
+| bank | variants | cross-tests | subcodes | check sites | of which `close to zero` | diary |
+|---|---|---|---|---|---|---|
+| `CoreFHorzTPathTests` | 8 nosemiz + 8 semiz | 6 | 22 | 554 | 32 | **2026-08-27, complete** |
+| `CoreFHorzTPathTests/withQuasiHyperbolicDiscounting` | 8 | 2 | 10 | 440 | 32 | never |
+| `CoreFHorzTPathExpAssetTests` | 8 | — | 8 | 256 | 16 | never |
+| `CoreFHorzTPathExpAssetzTests` | 4 | 2 | 6 | 168 | 8 | never |
+| `CoreFHorzTPathTwoEndoTests` | 8 | — | 8 | 256 | 16 | never |
+| `CoreFHorzTPathPTypeTests` | 7 tests | — | 7 | 44 ‡ | 9 | never |
+| **total** | | | **61** | **1718** | **113** | |
+
+‡ static `fprintf` sites. The PType checks sit inside `for ii=1:N_i` loops, so at runtime it is
+about **73** — `N_i=2` everywhere except `ShockTests_4types`, which uses 4.
+
+**1718 check sites are written; 554 of them — 32% — have ever executed.** That is the headline.
+Five of the six banks have never produced a diary, and `CoreInfHorzTPathTests` (out of scope here)
+is the only other TPath bank in the suite that has.
+
+### What a TPath variant tests that a stationary variant does not
+
+The extra axis is **`transpathoptions.fastOLG` ∈ {0,1}**, crossed with the same
+`{base, DC, GI, DC+GI}` ladder and the same `lowmemory` ladder as the stationary banks — hence
+the `Divide-and-conquer (slowOLG)` / `(fastOLG)` / `(with GI, slowOLG)` / `(with GI, fastOLG)`
+quartet on every label. On top of that each variant runs four oracles:
+
+- **`Do nothing TPath`** — a constant `PricePath`/`ParamPath` must reproduce the stationary solve
+  exactly, checked on `V`, `Policy` and `AgentDist`. This is the load-bearing oracle of the whole
+  TPath suite: it is the only one that pins the path code to an independently-computed answer
+  rather than to another tier of itself.
+- **one iteration of the GE transition path** (`transpathoptions.maxiter=1`), with/without
+  fastOLG and with/without GI. Explicitly a shape check — the subcodes say so — the GE core
+  being tested in `CoreStationaryGeneralEqm`.
+- **big-`a_grid` GI convergence** — `StationaryDist with/without grid interp … close to zero`
+  plus the eyeballed moment rows, the same construction as the stationary banks' QH/EZ mirrors.
+- **cross-tests** — `z as e`, `z and e 1/2`, `semiz as z`, and (ExpAssetz) a fake-`z`
+  experienceassetz against plain experienceasset.
+
+The QH mirror adds the Naive/Sophisticated split with `Valt`/`Vunderbar`/`Policyalt` channels and
+a `beta0=1` collapse onto exponential, exactly mirroring the stationary QH banks.
+
+### The one run there is
+
+`CoreFHorzTPathTestsdiary.txt`, 2026-08-27, is **clean and complete**: all 16 figures, all 554
+check sites reached (the static and diary counts agree exactly), **534 printing `0.00000000`**,
+16 `close to zero` GI-convergence lines, and 4 lines at `0.00000001`. No errors, no OOM, no
+aborted script — this is the only TPath bank known to run end to end.
+
+Two caveats on reading it:
+
+- **It predates the `%.3e` conversion.** All five TPath banks were moved onto `%.3e` in `917bb7c`
+  (2026-09-01), but this diary is from 08-27, so it is a `%2.8f` reading and the ULP-floor
+  section above applies in full: its "534 exactly zero" means "534 below 5e-9", and the four
+  `0.00000001` lines are floor-level, not faults. The next run will report honest small non-zeros
+  and that is expected, not a regression.
+- **It is still representative.** The only substantive change to the bank since is
+  `QHadditionaldiscount` going from `{'beta0'}` to `'beta0'` in the *QH* driver (`b119a89`);
+  everything else in the 33 touched files is format strings.
+
+### The header comment about semiz was stale (fixed 2026-09-05)
+
+`CoreFHorzTPathTests.m` said `with/without semiz [tests built; toolkit does not yet implement
+FHorz TPath with semiz]` at the top and `NOTE: these require the toolkit to implement FHorz TPath
+with semiz (not yet done)` above the second half. **Both were wrong.**
+`ValueFnIter/TransPathFHorz/subcodes/ValueFnOnTransPath_FHorz_SemiExo.m` exists and is dispatched
+from `ValueFnOnTransPath_Case1_FHorz.m:178`, and the 08-27 run executed figures 9–16 and all 231
+semiz check sites with no errors — the comments would have led someone to skip the working half
+of the script. Both replaced with the dispatch fact.
+
+The `NOT YET IMPLEMENTED` comments in `CoreFHorzTPathPTypeTests` were checked at the same time and
+are all still accurate: neither `EvalFnOnTransPath_AllStats_Case1_FHorz_PType` nor
+`LifeCycleProfiles_TransPath_FHorz_Case1_PType` exists, and nor does a non-PType
+`EvalFnOnTransPath_AllStats_Case1_FHorz` (only InfHorz has one).
+
+### Six silent-wrong-answer holes on the TPath side — all guarded 2026-09-06
+
+The TPath entry points dispatch on `experienceasset` / `experienceassetz` / `n_semiz` and nothing
+else, so every other non-standard combination fell through to the standard-endogenous-state code
+and returned a different model without complaint. Four such combinations existed; all now error.
+
+| combination | was | now |
+|---|---|---|
+| `riskyasset` on a TPath | zero mentions anywhere in the TPath tree | `error` |
+| `residualasset` on a TPath | zero mentions anywhere in the TPath tree | `error` |
+| `experienceasset(z)` + `semiz` | semiz tested *before* asset type, so it reached `ValueFnOnTransPath_FHorz_SemiExo`, which has zero knowledge of experience assets | `error` |
+| `QuasiHyperbolic` + `semiz` (compute path) | QH dispatched before the semiz branch; the QH subfn never mentions semiz | `error` |
+| `QuasiHyperbolic` + `semiz` (GE path) | the GE path has its *own* QH implementation, which never reads `n_semiz` | `error` |
+| `QuasiHyperbolic` + `experienceasset(z)` (GE path) | the GE substep dispatcher returns at the expasset branch *before* the QH branch, and the ExpAsset substep has zero mentions of `exoticpreferences` — so QH was silently dropped, while the compute-only path errors on the same model | `error` |
+
+Guards added at all five entry points: `ValueFnOnTransPath_Case1_FHorz`,
+`ValueFnOnTransPath_FHorz_QuasiHyperbolic`, `AgentDistOnTransPath_Case1_FHorz`,
+`TransitionPath_Case1_FHorz`, and `TransitionPath_Case1_FHorz_PType` — the last needs its own copy
+because it builds per-type option structures and drives the substeps directly instead of routing
+through `TransitionPath_Case1_FHorz`. The PType value-fn and agent-dist commands do route through
+their guarded non-PType versions, so they inherit.
+
+### riskyasset and residualasset: the detail
+
+`riskyasset` and `residualasset` appear in **zero files** under `ValueFnIter/TransPathFHorz/`,
+`StationaryDist/TransPathFHorz/`, `EvaluateFnOnAgentDist/TransPathFHorz/` and `TransitionPaths/`.
+Not "errors with a message" — absent. `ValueFnOnTransPath_Case1_FHorz` never reads
+`vfoptions.riskyasset`, so such a model is dispatched down the standard-endogenous-state path with
+`n_u`/`pi_u`/`aprimeFn`/`refine_d` simply unread, and a different model comes back without
+complaint. Every neighbouring unsupported combination guards — `experienceasset`+noa1
+(`ValueFnOnTransPath_FHorz_ExpAsset.m:49`), `experienceassetz`+z-varying
+(`TransitionPath_Case1_FHorz.m:366`), `experienceasset`+QH
+(`ValueFnOnTransPath_FHorz_QuasiHyperbolic.m:21`) — these two do not.
+
+`TPath_RiskyAsset_proposal.md` (toolkit repo, 2026-09-05) scopes both the guards and a full
+RiskyAsset TPath family: 80 SingleStep raws, a 16-variant test bank, and the reason `withA1` has
+to be built before `noa1`.
+
+### QH + semiz is silently wrong, not an error
+
+`ValueFnOnTransPath_Case1_FHorz.m:108-111` dispatches to
+`ValueFnOnTransPath_FHorz_QuasiHyperbolic` and **returns**, which is *before* the semiz branch at
+`:178`. The QH subfunction never mentions `semiz` — zero occurrences in the file. So
+`exoticpreferences='QuasiHyperbolic'` together with `vfoptions.n_semiz` does not error; it
+computes the no-semiz answer and hands it back.
+
+The QH driver's own banner already calls this combination `[NOT SUPPORTED by
+ValueFnOnTransPath_FHorz_QuasiHyperbolic]`, so the intent is documented — it is the *enforcement*
+that is missing. The idiom to copy is three lines away in the same file:
+
+```matlab
+if vfoptions.experienceasset>=1
+    error('ValueFnOnTransPath_FHorz_QuasiHyperbolic: experienceasset not yet supported')
+end
+```
+
+`experienceasset` gets a guard; `semiz` does not. One `prod(vfoptions.n_semiz)>0` error beside it
+closes it.
+
+### Open items recorded in the drivers themselves
+
+These are annotations the drivers already carry, not new findings — but they are the only record
+of them, and they are the reason four of these banks have no diary worth keeping:
+
+- **`CoreFHorzTPathExpAssetTests`, figures 2 and 4** — `RUNS BUT: Policy differs by 2, Claude
+  claims it is just about how DC handles indifferent policies different from without DC`. That
+  is the standard argmax-tie story and is probably right, but it is asserted, not demonstrated:
+  the stationary banks settle these by showing `max|dV|` at the differing points is 0. The
+  subcode has the diagnostic block for it (`(d2_nonDC, d2_DC) -> count`, diff counts by `t` and
+  by `j`); nobody has run it and written the answer down.
+- **`CoreFHorzTPathExpAssetzTests`, figure 4** — `Some of the lowmemory are not quite right,
+  seems to be just the Policy (V seems fine); at first I thought L2flag, but appears to impact
+  the DC (without GI) so that is not the reason.` **This one is unexplained and is the most
+  likely real defect in the TPath suite.** A `lowmemory` disagreement is the check the stationary
+  banks treat as never tied — "every `lowmemory` check exactly zero" is one of the three
+  discriminators that separate the ULP floor from a fault.
+- **OOM is routine here.** Four of the largest configurations replace `a_grid_big` with a
+  hand-built `n_a_notsobig` (501, 501, 301, 251 points) to fit. Same ceiling as the stationary
+  ExpAsset banks, hit earlier because a path holds `T` periods at once.
+- **`CoreFHorzTPathPTypeTests`** is blocked on two toolkit functions that do not exist:
+  `EvalFnOnTransPath_AllStats_Case1_FHorz_PType` and
+  `LifeCycleProfiles_TransPath_FHorz_Case1_PType`. The corresponding blocks in
+  `..._PerTypeFnsToEvaluate.m` are commented out awaiting them. Also noted there: **per-type
+  `N_j` is not allowed on a TPath**, unlike the stationary PType commands, so there is
+  deliberately no `PerTypeNj` test.
+
+### Coverage gaps relative to the stationary suite
+
+Whole axes that the stationary banks cover and the TPath banks do not:
+
+| axis | stationary | TPath |
+|---|---|---|
+| asset tiers | noa1 / withA1 / with2A1 | withA1 only (plus a separate TwoEndo bank) |
+| families | ExpAsset, U, e, z, ze, semiz, RiskyAsset, ResidAsset | ExpAsset, ExpAssetz only |
+| exotic prefs | QH, EZ, AA, GP | QH only, and unrun |
+| semiz | every family | main bank only (ExpAsset/ExpAssetz drivers say `NOT YET IMPLEMENTED`) |
+| `V_Jplus1` | 520 subcodes | n/a — the path's terminal condition is `V_final`, exercised by every variant |
+
+The `V_Jplus1` row is the one place the TPath banks are structurally *better* off: `V_final` is a
+mandatory input to every path solve, so there is no separate rarely-taken branch of the kind that
+produced eleven defects in the stationary families.
+
+**The cheapest thing to do next is run the five banks that have never run.** They are written,
+committed, and on `%.3e`; the main bank's clean 554 says the shared setup and the shared oracle
+shapes work. Order by expected yield: ExpAssetz (a recorded unexplained `lowmemory` Policy
+difference), then ExpAsset (an asserted-but-unverified tie), then the QH mirror (440 sites, never
+executed once), then TwoEndo and PType.
