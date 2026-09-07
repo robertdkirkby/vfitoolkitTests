@@ -85,6 +85,64 @@ title('Age-conditional earnings')
 AggVars=EvalFnOnAgentDist_AggVars_FHorz_Case1(StationaryDist1,Policy1,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions1);
 ValuesOnGrid=EvalFnOnAgentDist_ValuesOnGrid_FHorz_Case1(Policy1,FnsToEvaluate,Params,[],n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,simoptions1);
 
+
+%% V_Jplus1: use V of period jstar as the terminal value function of a shorter model
+% Solve the model, then solve a shorter model that runs only periods 1,...,jstar-1, giving it
+% vfoptions.V_Jplus1=V(:,:,:,jstar). V_Jplus1 is the value fn of period N_j+1 of the model being
+% solved, so the shorter model has Njs=jstar-1 periods, and the age-dependent parameters are
+% trimmed to length Njs (agej and kappa_j; the aprimeFn parameters phi1 and phi2 are scalars).
+% V and Policy must then be identical to the original model for periods 1,...,jstar-1.
+% This tier has no a1 for divide-and-conquer or the grid interp layer to operate on, so it
+% defines only vfoptions1. Run at jstar=round(3*N_j/4) and again at jstar=N_j (so the
+% retirement periods, and the terminal V_Jplus1 branch, are also covered), each with the
+% same lowmemory rungs as above.
+% Note: mewj is age-dependent, but is only used for the agent distribution, which is not
+% computed here, so it is left alone.
+for jstar=[round(3*N_j/4),N_j]
+    Njs=jstar-1; % the shorter model runs periods 1,...,jstar-1
+    Paramsjs=Params;
+    Paramsjs.agej=Params.agej(1:Njs);
+    Paramsjs.kappa_j=Params.kappa_j(1:Njs);
+    [Vbase,Policybase]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z,ReturnFn,Params,DiscountFactorParamNames,[],vfoptions1);
+    vfoptionsjs=vfoptions1;
+    vfoptionsjs.V_Jplus1=Vbase(:,:,:,jstar);
+    Vbase=Vbase(:,:,:,1:Njs);
+    Policybase=Policybase(:,:,:,:,1:Njs);
+    [Vshort,Policyshort]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,Njs,d_grid,a_grid,z_grid,pi_z,ReturnFn,Paramsjs,DiscountFactorParamNames,[],vfoptionsjs);
+    fprintf('V_Jplus1 (jstar=%i), this should be zero: %.3e \n',jstar,max(abs(Vbase(:)-Vshort(:))))
+    fprintf('V_Jplus1 (jstar=%i), this should be zero: %.3e \n',jstar,max(abs(Policybase(:)-Policyshort(:))))
+    % lowmemory (the V_Jplus1 branch of each raw has its own lowmemory sub-branches)
+    vfoptionsjs.lowmemory=1;
+    [Vshort,Policyshort]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,Njs,d_grid,a_grid,z_grid,pi_z,ReturnFn,Paramsjs,DiscountFactorParamNames,[],vfoptionsjs);
+    fprintf('V_Jplus1 (jstar=%i), lowmemory=1, this should be zero: %.3e \n',jstar,max(abs(Vbase(:)-Vshort(:))))
+    fprintf('V_Jplus1 (jstar=%i), lowmemory=1, this should be zero: %.3e \n',jstar,max(abs(Policybase(:)-Policyshort(:))))
+    vfoptionsjs.lowmemory=2;
+    [Vshort,Policyshort]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,Njs,d_grid,a_grid,z_grid,pi_z,ReturnFn,Paramsjs,DiscountFactorParamNames,[],vfoptionsjs);
+    fprintf('V_Jplus1 (jstar=%i), lowmemory=2, this should be zero: %.3e \n',jstar,max(abs(Vbase(:)-Vshort(:))))
+    fprintf('V_Jplus1 (jstar=%i), lowmemory=2, this should be zero: %.3e \n',jstar,max(abs(Policybase(:)-Policyshort(:))))
+end
+
+%% V_Jplus1, with age-dependent shocks
+% pi_z_J slice j is the transition from period j to period j+1, so the shorter model is given
+% slices 1:Njs (the last of these is the transition into the V_Jplus1 period).
+jstar=round(N_j/3);
+Njs=jstar-1;
+Paramsjs=Params;
+Paramsjs.agej=Params.agej(1:Njs);
+Paramsjs.kappa_j=Params.kappa_j(1:Njs);
+pi_z_J=pi_z.*ones(1,1,N_j);
+pi_z_J(:,:,1:2:N_j)=0.5*pi_z_J(:,:,1:2:N_j)+0.5*eye(n_z); % make it genuinely age-dependent
+vfoptionsjs=vfoptions1;
+[Vbase,Policybase]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,N_j,d_grid,a_grid,z_grid,pi_z_J,ReturnFn,Params,DiscountFactorParamNames,[],vfoptionsjs);
+vfoptionsjs.V_Jplus1=Vbase(:,:,:,jstar);
+Vbase=Vbase(:,:,:,1:Njs);
+Policybase=Policybase(:,:,:,:,1:Njs);
+[Vshort,Policyshort]=ValueFnIter_Case1_FHorz(n_d,n_a,n_z,Njs,d_grid,a_grid,z_grid,pi_z_J(:,:,1:Njs),ReturnFn,Paramsjs,DiscountFactorParamNames,[],vfoptionsjs);
+fprintf('V_Jplus1 with age-dependent shocks (jstar=%i), this should be zero: %.3e \n',jstar,max(abs(Vbase(:)-Vshort(:))))
+fprintf('V_Jplus1 with age-dependent shocks (jstar=%i), this should be zero: %.3e \n',jstar,max(abs(Policybase(:)-Policyshort(:))))
+
+clear Vbase Policybase Vshort Policyshort
+
 %%
 output=struct();
 
