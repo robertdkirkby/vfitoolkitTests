@@ -15,14 +15,13 @@
 % Kuruscu & Smith); shiftGP exists purely so the cross tests can exercise the
 % constant-cancellation and shift-invariance properties.
 %
-% TEST-FIRST STATE (2026-09-02, see GulPesendorfer_FHorz_proposal.md in the toolkit repo):
-% the main (single-asset, nosemiz) tier is GPU-green against toolkit commit 7aae7f85 (bank
-% commit 3da5095, run 2: 266 zero-checks). The semiz section (figs 9-16 + semiz cross tests)
-% and the with2A section (figs 17-24 + with2A cross tests) are TEST-FIRST, written together
-% with the GP semiz family (32 raws + 4 dispatchers + FromPolicy SemiExo subfn) and the GP 2A
-% tiers (24 raws + 2A branches in the DC/GI/DC+GI dispatchers); run against that toolkit wave.
-% Also in this wave: the noz_noe cases' vacuous lowmemory checks were removed (zero shocks
-% means lowmemory has nothing to loop over; see the notes in those subcodes).
+% STATE (2026-09-07, see GulPesendorfer_FHorz_proposal.md in the toolkit repo): the whole
+% bank is GPU-green. Figs 1-24 + the four earlier cross-test files under toolkit e9d6d8aa /
+% bank 3681a51 (746 zero-checks), and the semiz-with2A section (figs 25-32 + its cross
+% tests; 266 checks) under the GP semiz-2A wave (24 raws: SemiExo_DC2A/GI2A/DC2A_GI2A,
+% plus 2A branches in the GP SemiExo dispatchers and FromPolicy support). Memory note
+% throughout: GP holds the return matrix and its temptation twin simultaneously (~2x
+% core), hence the reduced big-grids on the largest cases.
 
 %% Diary of the command window output (figures are saved into the same folder as they are created)
 if ~exist('../TestOutput','dir')
@@ -112,6 +111,7 @@ exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig
 output=GPFHorz_CrossTests_nod_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
 
 output=GPFHorz_CrossTests_d_nosemiz(n_d,n_a,n_a_big,n_z,N_j,d_grid,a_grid,a_grid_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
+
 
 %% That is all the without semiz, now with semiz
 % d1 is a decision variable that is not in the SemiExoStateFn; d2 (binary search effort) drives
@@ -238,6 +238,73 @@ exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig
 output=GPFHorz_CrossTests_nod_nosemiz_with2A(n_d,n_a_2A,n_a_2A_big,n_z,N_j,d_grid,a_grid_2A,a_grid_2A_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
 
 output=GPFHorz_CrossTests_d_nosemiz_with2A(n_d,n_a_2A,n_a_2A_big,n_z,N_j,d_grid,a_grid_2A,a_grid_2A_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
+
+%% That is all the without semiz (with2A), now with semiz (with2A)
+% The cross of the two tiers: two standard endogenous states AND a semi-exogenous state.
+% Memory note: several cases get reduced big-grids (tighter than the QH bank's, since GP
+% holds the return matrix and its temptation twin simultaneously, ~2x the core memory).
+addpath('./withGulPesendorferPrefs_subcodes/With2A_subcodes/Semiz_subcodes/')
+addpath('./withGulPesendorferPrefs_subcodes/With2A_subcodes/Semiz_subcodes/CrossTests/')
+addpath('../CoreFHorz_ReturnFns/With2A_ReturnFns/Semiz_ReturnFns/')
+
+%% without d1, without z, without e (semiz, with2A)
+figure_c=25;
+output=GPFHorz_nod1_noz_noe_semiz_with2A(n_d2_semiz,n_a_2A,n_a_2A_big,n_z,N_j,d2_grid_semiz,a_grid_2A,a_grid_2A_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% with d1, without z, without e (semiz, with2A)
+figure_c=26;
+n_a_notsobig=[501,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_d1_noz_noe_semiz_with2A(n_d_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% without d1, with z, without e (semiz, with2A)
+figure_c=27;
+n_a_notsobig=[501,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_nod1_z_noe_semiz_with2A(n_d2_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d2_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% with d1, with z, without e (semiz, with2A)
+figure_c=28;
+n_a_notsobig=[301,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_d1_z_noe_semiz_with2A(n_d_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% without d1, without z, with e (semiz, with2A)
+figure_c=29;
+n_a_notsobig=[501,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_nod1_noz_e_semiz_with2A(n_d2_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d2_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% with d1, without z, with e (semiz, with2A)
+figure_c=30;
+n_a_notsobig=[401,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_d1_noz_e_semiz_with2A(n_d_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% without d1, with z, with e (semiz, with2A)
+figure_c=31;
+n_a_notsobig=[401,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_nod1_z_e_semiz_with2A(n_d2_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d2_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% with d1, with z, with e (semiz, with2A)
+figure_c=32;
+n_a_notsobig=[201,4];
+a_grid_notsobig=[5*linspace(0,1,n_a_notsobig(1))'.^3; a2_grid_2A];
+output=GPFHorz_d1_z_e_semiz_with2A(n_d_semiz,n_a_2A,n_a_notsobig,n_z,N_j,d_grid_semiz,a_grid_2A,a_grid_notsobig,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline,figure_c);
+exportgraphics(figure(figure_c),['../TestOutput/CoreFHorzGulPesendorferTests_Fig',num2str(figure_c),'.png'],'Resolution',150)
+
+%% The semiz-with2A cross tests (see the comments at the top of the cross-test subcodes for what they cover)
+output=GPFHorz_CrossTests_nod1_semiz_with2A(n_d2_semiz,n_a_2A,n_a_2A_big,n_z,N_j,d2_grid_semiz,a_grid_2A,a_grid_2A_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
+
+output=GPFHorz_CrossTests_d1_semiz_with2A(n_d_semiz,n_a_2A,n_a_2A_big,n_z,N_j,d_grid_semiz,a_grid_2A,a_grid_2A_big,z_grid,pi_z,Params,DiscountFactorParamNames,AgeWeightParamNames,vfoptionsbaseline,simoptionsbaseline);
 
 %% Done
 diary off

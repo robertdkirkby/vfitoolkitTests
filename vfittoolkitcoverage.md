@@ -311,7 +311,11 @@ the semiz × 2A cross tier landed (24 raws: {DC2A, GI2A, DC2A_GI2A} × {d1,nod1}
 max, interpolation on a1prime only), plus 2A branches in the GP SemiExo tier dispatchers and
 2A support in ValueFnFromPolicy GP SemiExo. GP is the first family with the full
 {plain,DC,GI,DC+GI} × {1A,2A} × {nosemiz,semiz} cube. Bank extension: 8 semiz-with2A cases +
-2 cross tests (figs 25-32). AWAITING GPU VALIDATION — figs 1-24 remain the green baseline.
+2 cross tests (figs 25-32). GPU-GREEN 2026-09-07 (266 checks all at/below the ULP floor;
+just-a-markov pins the semiz-2A machinery to the validated nosemiz-2A family, 12 exact
+zeros + 4 at 8e-15). The one run-1 find: the GP SemiExo_DC dispatcher had wrongly bumped
+its 2A UnKron level — DC raws return the joint aprime kron index, so DC keeps the 1A
+UnKron calls (only GI/DC_GI bump); fixed to match the core dispatcher.
 
 | family | total raws | QH | EZ | AA | GP | core |
 |---|---|---|---|---|---|---|
