@@ -23,23 +23,19 @@
 %   (iii) the same collapses under the grid interpolation layer
 %   (iv)  vfoptions.EZoneminusbeta=1 versus manually scaling the return fn
 %
-% TEST-FIRST STATE (see EZtests_full_coverage_proposal.md). The following are EXPECTED to error or
-% fail until the corresponding toolkit features are implemented; they are here so the gap is
-% covered and drives the implementation:
-%  - EZ + divide-and-conquer: the DC-vs-baseline checks are real.
-%  - EZ + grid interpolation: incl. DC+GI and ValueFnFromPolicy under
-%    GI. The GI layer interpolates the transformed continuation EV=E[(ezc4*V)^ezc5], so the
-%    gamma=1/phi collapse tests are exact under GI too.
-%  - EZ + semiz (figs 9-16, and the semiz CrossTests): no EZ SemiExo solvers exist yet; everything
-%    errors at the first solve. (Also figs 9,10: with n_z=0 and no e the EZ dispatcher prints its
-%    no-shocks warning and routes to the noz raws, which ignore semiz; route to the EZ SemiExo
-%    solvers instead when they are added.)
-%  - ValueFnFromPolicy_FHorz has an EpsteinZin branch (as of 2026-08-11): the baseline
-%    ValueFnFromPolicy checks should be zero. The GI variants error deliberately until EZ+GI exists.
-%  - Figs 1,2 (no z, no e, no semiz): Epstein-Zin without any shocks is allowed (as of 2026-08-11;
-%    the certainty-equivalent is just the identity) but every solve prints a warning that EZ does
-%    not make much sense without shocks; that warning is expected output for those two figs and
-%    the no-shock cross-test legs.
+% The bank was written test-first, but every feature it waited on now exists: EZ runs with
+% divide-and-conquer, with the grid interpolation layer (incl. DC+GI), and with semiz, and
+% ValueFnFromPolicy_FHorz has an EpsteinZin branch that is exercised both with and without GI.
+% Nothing here is expected to error any more.
+%
+% The GI layer interpolates the transformed continuation EV=E[(ezc4*V)^ezc5], so the gamma=1/phi
+% collapse tests are exact under GI too.
+%
+% Two warnings are expected output rather than failures:
+%  - "Epstein-Zin preferences do not make much sense without any shocks": Epstein-Zin without any
+%    shocks is allowed (the certainty-equivalent is the identity), but every such solve says so.
+%    Fires for the no-shock figures and the no-shock cross-test legs.
+%  - the vfoptions.WarmGlowBequestsFn warning, on the warm-glow legs.
 %
 % Each subcode draws Case 1 as figure_c, Case 2 as 100+figure_c, and Case 3 as 200+figure_c.
 
